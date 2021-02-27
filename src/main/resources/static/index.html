@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Restaurant</title>
+    <link rel="stylesheet" href="https://igoradamenko.github.io/awsm.css/css/awsm.min.css">
+</head>
+<body>
+<main>
+
+</main>
+<script>
+    let orderId = null;
+    let basketExists = false;
+    (async function() {
+        let main = document.querySelector('main');
+        const response =  await fetch('http://localhost:8080/categories',{method:'GET'});
+        if (response.ok) {
+            const categories = await response.json();
+            const categoriesList = document.createElement('ul');
+            for (const category of categories) {
+                categoriesList.appendChild(await createCategory(category));
+            }
+            main.append(categoriesList);
+            await addEventListenersToMenuButtons();
+        }
+        async function createCategory({ id,name, isFixedCost, fixedCost, fixedCostValue }) {
+            const result = document.createElement('li');
+            const catResponse =  await fetch(`http://localhost:8080/categories/${id}/menupositions`,{method:'GET'});
+            const menuPositions = await catResponse.json();
+            const menuPositionsList = document.createElement('ul');
+            for (const menuPosition of menuPositions) {
+                menuPositionsList.appendChild(await createMenuPosition(menuPosition, fixedCost));
+            }
+            if(fixedCost){
+                result.innerHTML = `<label>${name} - ${fixedCostValue}zł</label>`
+            }else{
+                result.innerHTML = `<label>${name}</label>`
+            }
+            result.append(menuPositionsList);
+            return result;
+        }
+        async function createMenuPosition({id,cost,name},fixedCost){
+
+
+            //MENUPOSITION BODY
+            const result = document.createElement('li')
+            if(fixedCost){
+                result.innerHTML =
+                `<label>${name}  </label>
+                <button class=addToOrder id=${id}>+</button>`
+            } else {
+                result.innerHTML =
+                `<label>${name} - ${cost}zł  </label>
+                <button class=addToOrder id=${id}>+</button>`
+            }
+            return result;
+        }
+    })();
+    function updateCurrentOrderView({id,boughtPositionsNames,boughtPositionsQuantities,comment,cost,commited}) {
+        let main = document.querySelector('main');
+        if (basketExists){
+            main.removeChild(main.lastChild);
+        }
+        const view = document.createElement('ul')
+
+        const header = document.createElement('h4')
+        header.innerText = "Twój koszyk:";
+        view.prepend(header);
+
+        let i = 0;
+        boughtPositionsNames.forEach(position => {
+            const row = document.createElement('li');
+            row.innerHTML =
+                `<label>${position} x ${boughtPositionsQuantities[i]}`
+            view.appendChild(row)
+            i = i + 1;
+        })
+        const orderCost = document.createElement('LABEL');
+        orderCost.innerText = `Całkowity koszt: ${cost}`;
+        view.appendChild(orderCost);
+        main.appendChild(view)
+        basketExists = true;
+    }
+    async function addEventListenersToMenuButtons(){
+        document.querySelectorAll('.addToOrder').forEach(item=>{
+            item.addEventListener('click',async event=>{
+                event.preventDefault();
+                if(orderId==null){
+
+
+                    //CREATING NEW ORDER
+                    const resp = await fetch("http://localhost:8080/orders",{
+                        method: 'post',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    if (resp.ok){
+                        const order = await resp.json();
+                        const orderView = document.createElement('li');
+                        orderId= order.id;
+                    }
+                }
+                //APPENDING TO ORDER
+                const resp = await fetch(`http://localhost:8080/orders/${orderId}/increaseposition`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        menuPositionId: item.id,
+                        quantity: 1
+                    })
+                })
+
+                const currentOrder = await resp.json();
+                updateCurrentOrderView(currentOrder);
+            })
+        })
+    }
+
+</script>
+</body>
+</html>

@@ -1,8 +1,10 @@
 package com.shop.restaurant.service;
 
 import com.shop.restaurant.model.Category;
+import com.shop.restaurant.model.MenuPosition;
 import com.shop.restaurant.model.dto.CategoryReadModel;
 import com.shop.restaurant.model.dto.CategoryWriteModel;
+import com.shop.restaurant.model.dto.MenuPositionReadModel;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
+import java.awt.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,6 +48,18 @@ public class CategoryService {
         .map(CategoryReadModel::new)
         .collect(Collectors.toList());
   }
+  public List<MenuPositionReadModel> findByCategoryId(int id){
+    TypedQuery<MenuPosition> query = em.createQuery(
+        "SELECT DISTINCT m FROM MenuPosition m WHERE m.category.id = :id",
+        MenuPosition.class
+    )
+        .setParameter("id",id)
+        .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false);
+
+    return query.getResultList().stream()
+        .map(MenuPositionReadModel::new)
+        .collect(Collectors.toList());
+  }
 
   Category findById(int id){
     TypedQuery<Category> query = em.createQuery(
@@ -56,4 +71,5 @@ public class CategoryService {
       throw new IllegalArgumentException("No such category");
     }
   }
+
 }
