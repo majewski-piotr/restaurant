@@ -3,14 +3,24 @@ package com.shop.restaurant.model.dto;
 import com.shop.restaurant.model.BoughtPosition;
 
 public class BoughtPositionReadModel {
+  private int orderId;
   private int id;
   private int menuPositionId;
   private int quantity;
 
   public BoughtPositionReadModel(BoughtPosition source) {
+    this.orderId = source.getOrder().getId();
     this.id = source.getId();
     this.menuPositionId = source.getMenuPosition().getId();
     this.quantity = source.getQuantity();
+  }
+
+  public int getOrderId() {
+    return orderId;
+  }
+
+  public void setOrderId(int orderId) {
+    this.orderId = orderId;
   }
 
   public int getId() {

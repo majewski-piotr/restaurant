@@ -25,22 +25,6 @@ public class OrderReadModel {
     this.commited = source.isCommited();
   }
 
-  public List<Integer> getBoughtPositionsQuantities() {
-    return boughtPositionsQuantities;
-  }
-
-  public void setBoughtPositionsQuantities(List<Integer> boughtPositionsQuantities) {
-    this.boughtPositionsQuantities = boughtPositionsQuantities;
-  }
-
-  public boolean isCommited() {
-    return commited;
-  }
-
-  public void setCommited(boolean commited) {
-    this.commited = commited;
-  }
-
   public int getId() {
     return id;
   }
@@ -49,12 +33,20 @@ public class OrderReadModel {
     this.id = id;
   }
 
-  public List<String> getBoughtPositionsId() {
+  public List<String> getBoughtPositionsNames() {
     return boughtPositionsNames;
   }
 
-  public void setBoughtPositionsId(List<String> boughtPositionsId) {
-    this.boughtPositionsNames = boughtPositionsId;
+  public void setBoughtPositionsNames(List<String> boughtPositionsNames) {
+    this.boughtPositionsNames = boughtPositionsNames;
+  }
+
+  public List<Integer> getBoughtPositionsQuantities() {
+    return boughtPositionsQuantities;
+  }
+
+  public void setBoughtPositionsQuantities(List<Integer> boughtPositionsQuantities) {
+    this.boughtPositionsQuantities = boughtPositionsQuantities;
   }
 
   public String getComment() {
@@ -71,5 +63,13 @@ public class OrderReadModel {
 
   public void setCost(int cost) {
     this.cost = cost;
+  }
+
+  public boolean isCommited() {
+    return commited;
+  }
+
+  public void setCommited(boolean commited) {
+    this.commited = commited;
   }
 }

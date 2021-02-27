@@ -10,7 +10,7 @@ public class Order {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
-  @OneToMany(fetch = FetchType.LAZY)
+  @OneToMany(fetch = FetchType.LAZY, mappedBy = "order")
   private List<BoughtPosition> boughtPositions;
   private String comment;
   private boolean commited;
