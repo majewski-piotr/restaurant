@@ -18,15 +18,19 @@ import javax.persistence.TypedQuery;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
   EmailService emailService;
   MenuPositionService menuPositionService;
+  ExecutorService executor = Executors.newFixedThreadPool(10);
 
   @PersistenceContext
   EntityManager em;
+
 
   @Autowired
   public OrderService(EmailService emailService, MenuPositionService menuPositionService) {
@@ -118,7 +122,13 @@ public class OrderService {
     currentOrder.setCommitedTime(LocalDateTime.now());
     currentOrder.setCommited(true);
     OrderCommitedReadModel commited = new OrderCommitedReadModel(currentOrder);
-    emailService.sendSimpleMessage("piomaj4@wp.pl","Zamówienie nr"+currentOrder.getId(),commited.toString());
+    executor.submit(() -> {
+      emailService.sendEmail(
+          "Zamówienie nr "+currentOrder.getId(),
+          "majewski.piotr.511@gmail.com",
+          "piomaj4@wp.pl",
+          commited.toFreemarkerModel());
+    });
     return commited;
   }
 

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dziękujemy za zamówienie!</title>
+    <link rel="stylesheet" href="https://igoradamenko.github.io/awsm.css/css/awsm.min.css">
+</head>
+<body>
+<main>
+    <h3>Dziękujemy za zamówienie!</h3>
+    <p>Twoje produkty:</p>
+    <ul id="zakupy"></ul>
+    <p id="koszt">Koszt całkowity: </p>
+    <p id="time">Szacowany czas dostawy: </p>
+</main>
+<script>
+    let commitedOrder = JSON.parse(window.localStorage.getItem("commitedOrder"));
+    (function (){
+        const zakupy = document.getElementById("zakupy");
+        const koszt = document.getElementById("koszt");
+        const time = document.getElementById("time");
+
+        let i = 0
+        commitedOrder.boughtPositionsNames.forEach(element => {
+            const pozycja = document.createElement("LABEL");
+            pozycja.innerHTML = `<p>${element}: ${commitedOrder.quantities[i]} x ${commitedOrder.boughtPositionCosts[i]}zł</p>`
+            i += 1;
+            zakupy.appendChild(pozycja);
+        })
+        const faktycznyKoszt = document.createElement('LABEL');
+        faktycznyKoszt.innerHTML = `<label> ${commitedOrder.cost}zł</label>`;
+        koszt.appendChild(faktycznyKoszt);
+
+        const faktycznyCzas = document.createElement("LABEL");
+        faktycznyCzas.innerHTML = `<label> ${commitedOrder.commitedTime}</label>`;
+        time.appendChild(faktycznyCzas);
+    }())
+</script>
+</body>
+</html>
