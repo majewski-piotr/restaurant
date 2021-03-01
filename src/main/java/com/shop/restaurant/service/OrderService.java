@@ -1,11 +1,8 @@
 package com.shop.restaurant.service;
 
-import com.shop.restaurant.model.dto.BoughtPositionWriteModel;
-import com.shop.restaurant.model.dto.OrderCommitWriteModel;
-import com.shop.restaurant.model.dto.OrderCommitedReadModel;
+import com.shop.restaurant.model.dto.*;
 import com.shop.restaurant.model.BoughtPosition;
 import com.shop.restaurant.model.Order;
-import com.shop.restaurant.model.dto.OrderReadModel;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -145,7 +142,7 @@ public class OrderService {
     return result.stream().map(OrderReadModel::new).collect(Collectors.toList());
   }
 
-  public List<OrderCommitedReadModel> findAllCommited(boolean isCommited){
+  public List<OrderHistoryReadModel> findAllCommited(boolean isCommited){
     TypedQuery<Order> query = em.createQuery(
         "SELECT DISTINCT o FROM Order o " +
             "LEFT JOIN FETCH o.boughtPositions b " +
@@ -157,7 +154,7 @@ public class OrderService {
         .setParameter("isCommited",isCommited);
 
     List<Order> result = query.getResultList();
-    return result.stream().map(OrderCommitedReadModel::new).collect(Collectors.toList());
+    return result.stream().map(OrderHistoryReadModel::new).collect(Collectors.toList());
   }
 
   private Order findOrderById(int id){

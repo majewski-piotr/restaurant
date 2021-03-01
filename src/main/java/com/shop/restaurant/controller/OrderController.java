@@ -1,10 +1,7 @@
 package com.shop.restaurant.controller;
 
 
-import com.shop.restaurant.model.dto.BoughtPositionWriteModel;
-import com.shop.restaurant.model.dto.OrderCommitWriteModel;
-import com.shop.restaurant.model.dto.OrderCommitedReadModel;
-import com.shop.restaurant.model.dto.OrderReadModel;
+import com.shop.restaurant.model.dto.*;
 import com.shop.restaurant.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -48,8 +45,8 @@ public class OrderController {
   }
 
   @GetMapping
-  ResponseEntity<List<OrderCommitedReadModel>> findAllCommited(@RequestParam boolean isCommited){
-    List<OrderCommitedReadModel> commited = orderService.findAllCommited(isCommited);
-    return ResponseEntity.ok(commited);
+  ResponseEntity<List<OrderHistoryReadModel>> findAllCommited(@RequestParam boolean isCommited){
+    List<OrderHistoryReadModel> result = orderService.findAllCommited(isCommited);
+    return ResponseEntity.ok(result);
   }
 }

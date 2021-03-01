@@ -33,8 +33,7 @@ public class OrderCommitedReadModel {
       this.quantities.add(boughtPosition.getQuantity());
       this.cost += (boughtPosition.getMenuPosition().getCost() * boughtPosition.getQuantity());
     });
-    this.commitedTime =  source.getCommitedTime().plusHours(1)
-        .format(DateTimeFormatter.ofPattern("HH:mm"));
+    this.commitedTime =  source.getCommitedTime().plusHours(1).format(DateTimeFormatter.ofPattern("HH:mm"));
   }
 
   public List<Integer> getBoughtPositionCosts() {

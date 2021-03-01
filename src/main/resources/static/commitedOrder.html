@@ -7,6 +7,10 @@
 </head>
 <body>
 <main>
+    <nav>
+        <button id="menu">Menu</button>
+        <button id="orderHistory">Historia zamówień</button>
+    </nav>
     <h3>Dziękujemy za zamówienie!</h3>
     <p>Twoje produkty:</p>
     <ul id="zakupy"></ul>
@@ -14,6 +18,16 @@
     <p id="time">Szacowany czas dostawy: </p>
 </main>
 <script>
+    const orderHistoryButton = document.getElementById("orderHistory");
+    orderHistoryButton.addEventListener('click', event =>{
+        const win = window.open("orderHistory.html", '_blank');
+        win.focus();
+    });
+    const menuButton = document.getElementById("menu");
+    menuButton.addEventListener('click', event =>{
+        const win = window.open("index.html", '_blank');
+        win.focus();
+    });
     let commitedOrder = JSON.parse(window.localStorage.getItem("commitedOrder"));
     (function (){
         const zakupy = document.getElementById("zakupy");

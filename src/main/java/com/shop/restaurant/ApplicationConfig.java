@@ -42,8 +42,7 @@ public class ApplicationConfig {
   public FreeMarkerConfigurationFactoryBean getFreeMarkerConfiguration() {
     FreeMarkerConfigurationFactoryBean fmConfigFactoryBean = new FreeMarkerConfigurationFactoryBean();
     fmConfigFactoryBean.setDefaultEncoding("UTF-8");
-
-    //THIS IS QUITE UGLY BUT I COULDNT FIGURE OUT PATH, NO ONE SEEMS TO WORK
+    //THIS IS QUITE UGLY BUT I COULDNT FIGURE OUT PATH, NO OTHER SEEMS TO WORK
     String basePath = new File("").getAbsolutePath();
     fmConfigFactoryBean.setTemplateLoaderPath("file:"+basePath+"\\src\\main\\resources\\templates");
 

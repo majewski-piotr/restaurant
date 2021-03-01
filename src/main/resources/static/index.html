@@ -7,6 +7,9 @@
 </head>
 <body>
 <main>
+    <nav>
+        <button id="orderHistory">Historia zamówień</button>
+    </nav>
 
 </main>
 <script>
@@ -19,6 +22,11 @@
     let comment_ = null;
     let cost_ = null;
 
+    const orderHistoryButton = document.getElementById("orderHistory");
+    orderHistoryButton.addEventListener('click', event =>{
+        const win = window.open("orderHistory.html", '_blank');
+        win.focus();
+    });
     (async function() {
         let main = document.querySelector('main');
         const response =  await fetch('http://localhost:8080/categories',{method:'GET'});
