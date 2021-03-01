@@ -3,29 +3,36 @@ package com.shop.restaurant.service;
 import com.shop.restaurant.model.dto.MenuPositionReadModel;
 import com.shop.restaurant.model.dto.MenuPositionWriteModel;
 import com.shop.restaurant.model.MenuPosition;
-import com.shop.restaurant.model.repository.CategoryRepository;
-import com.shop.restaurant.model.repository.MenuPositionRepository;
+import org.hibernate.jpa.QueryHints;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class MenuPositionService {
-  private MenuPositionRepository menuPositionRepository;
-  private CategoryRepository categoryRepository;
+  CategoryService categoryService;
 
-  public MenuPositionService(MenuPositionRepository menuPositionRepository, CategoryRepository categoryRepository) {
-    this.menuPositionRepository = menuPositionRepository;
-    this.categoryRepository = categoryRepository;
+  @Autowired
+  public MenuPositionService(CategoryService categoryService) {
+    this.categoryService = categoryService;
   }
+
+  @PersistenceContext
+  EntityManager em;
 
   private MenuPosition create(MenuPositionWriteModel source){
     MenuPosition created = new MenuPosition();
+
     created.setName(source.getName());
-    created.setCategory(categoryRepository.findById(source.getCategoryId()).orElseThrow(
-        ()-> new IllegalArgumentException("no such category")
-    ));
+    created.setCategory(categoryService.findById(source.getCategoryId()));
+
     if(created.getCategory().isFixedCost()){
       created.setCost(created.getCategory().getFixedCostValue());
     }else{
@@ -34,13 +41,31 @@ public class MenuPositionService {
     return created;
   }
 
+  @Transactional
   public MenuPositionReadModel save(MenuPositionWriteModel source){
-    MenuPosition saved = menuPositionRepository.save(create(source));
-    return new MenuPositionReadModel(saved);
+    MenuPosition created = create(source);
+    em.persist(created);
+    return new MenuPositionReadModel(created);
   }
 
   public List<MenuPositionReadModel> findAll(){
-    List<MenuPosition> result = menuPositionRepository.findAll();
-    return result.stream().map(MenuPositionReadModel::new).collect(Collectors.toList());
+    TypedQuery<MenuPosition> query = em.createQuery(
+        "SELECT DISTINCT m FROM MenuPosition m LEFT JOIN FETCH m.category c",MenuPosition.class)
+        .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false);
+    return query.getResultList().stream()
+        .map(MenuPositionReadModel::new)
+        .collect(Collectors.toList());
+  }
+
+  MenuPosition findById(int id){
+    TypedQuery<MenuPosition> query = em.createQuery(
+        "SELECT m FROM MenuPosition m LEFT JOIN FETCH m.category WHERE m.id = :id",
+        MenuPosition.class
+    ).setParameter("id",id);
+    try{
+      return query.getSingleResult();
+    }catch(NoResultException e){
+      throw new IllegalArgumentException("No such menu position!");
+    }
   }
 }

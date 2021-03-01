@@ -1,23 +1,26 @@
 package com.shop.restaurant.service;
 
 import com.shop.restaurant.model.Category;
+import com.shop.restaurant.model.MenuPosition;
 import com.shop.restaurant.model.dto.CategoryReadModel;
-import com.shop.restaurant.model.repository.CategoryRepository;
 import com.shop.restaurant.model.dto.CategoryWriteModel;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.shop.restaurant.model.dto.MenuPositionReadModel;
+import org.hibernate.jpa.QueryHints;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import java.awt.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
-  private CategoryRepository categoryRepository;
-
-  @Autowired
-  public CategoryService(CategoryRepository categoryRepository) {
-    this.categoryRepository = categoryRepository;
-  }
+  @PersistenceContext
+  EntityManager em;
 
   private Category create(CategoryWriteModel source){
     Category created = new Category();
@@ -29,13 +32,44 @@ public class CategoryService {
     return created;
   }
 
+  @Transactional
   public CategoryReadModel save(CategoryWriteModel source){
-    Category saved = categoryRepository.save(create(source));
-    return new CategoryReadModel(saved);
+    Category created = create(source);
+    em.persist(created);
+    return new CategoryReadModel(created);
   }
 
   public List<CategoryReadModel> findAll(){
-    List<Category> result = categoryRepository.findAll();
-    return result.stream().map(CategoryReadModel::new).collect(Collectors.toList());
+    TypedQuery<Category> query = em.createQuery(
+        "SELECT DISTINCT c FROM Category c",Category.class
+    ).setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false);
+
+    return query.getResultList().stream()
+        .map(CategoryReadModel::new)
+        .collect(Collectors.toList());
   }
+  public List<MenuPositionReadModel> findByCategoryId(int id){
+    TypedQuery<MenuPosition> query = em.createQuery(
+        "SELECT DISTINCT m FROM MenuPosition m WHERE m.category.id = :id",
+        MenuPosition.class
+    )
+        .setParameter("id",id)
+        .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false);
+
+    return query.getResultList().stream()
+        .map(MenuPositionReadModel::new)
+        .collect(Collectors.toList());
+  }
+
+  Category findById(int id){
+    TypedQuery<Category> query = em.createQuery(
+        "SELECT c FROM Category c where c.id = :id", Category.class
+    ).setParameter("id",id);
+    try{
+      return query.getSingleResult();
+    } catch (NoResultException e ){
+      throw new IllegalArgumentException("No such category");
+    }
+  }
+
 }

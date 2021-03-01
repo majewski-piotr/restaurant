@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" >
+    <title>Title</title>
+    <link rel="stylesheet" href="https://igoradamenko.github.io/awsm.css/css/awsm.min.css">
+</head>
+<body>
+<main>
+    <h3>Dziękujemy za zamówienie!</h3>
+    <p>Twoje produkty:</p>
+    <ul>
+    <#list rows as row>
+    <li>${row}</li>
+    </#list>
+    </ul>
+    <p id="koszt">Do zapłaty: ${totalCost}zł</p>
+    <p id="time">Szacowana godzina dostawy: ${time} </p>
+</main>
+
+</body>
+</html>

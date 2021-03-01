@@ -1,45 +1,59 @@
 package com.shop.restaurant.service;
 
-import com.shop.restaurant.model.dto.BoughtPositionWriteModel;
-import com.shop.restaurant.model.dto.OrderCommitWriteModel;
-import com.shop.restaurant.model.dto.OrderCommitedReadModel;
+import com.shop.restaurant.model.dto.*;
 import com.shop.restaurant.model.BoughtPosition;
 import com.shop.restaurant.model.Order;
-import com.shop.restaurant.model.dto.OrderReadModel;
-import com.shop.restaurant.model.repository.BoughtPositionRepository;
-import com.shop.restaurant.model.repository.OrderRepository;
+import org.hibernate.jpa.QueryHints;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
-  OrderRepository orderRepository;
-  BoughtPositionService boughtPositionService;
-  BoughtPositionRepository boughtPositionRepository;
   EmailService emailService;
+  MenuPositionService menuPositionService;
+  ExecutorService executor = Executors.newFixedThreadPool(10);
 
-  public OrderService(OrderRepository orderRepository, BoughtPositionService boughtPositionService,
-                      BoughtPositionRepository boughtPositionRepository, EmailService emailService) {
-    this.orderRepository = orderRepository;
-    this.boughtPositionService = boughtPositionService;
-    this.boughtPositionRepository = boughtPositionRepository;
+  @PersistenceContext
+  EntityManager em;
+
+
+  @Autowired
+  public OrderService(EmailService emailService, MenuPositionService menuPositionService) {
     this.emailService = emailService;
+    this.menuPositionService = menuPositionService;
   }
 
-  public Order create(){
+  public Order createOrder(){
     Order created = new Order();
     created.setBoughtPositions(new ArrayList<>());
     return created;
   }
 
-  public OrderReadModel save(Order tosave){
-    Order saved = orderRepository.save(tosave);
-    return new OrderReadModel(saved);
+  @Transactional
+  public OrderReadModel saveOrder(Order toSave){
+    em.persist(toSave);
+    return new OrderReadModel(toSave);
+  }
+
+
+  private BoughtPosition createBoughtPosition(BoughtPositionWriteModel source, int orderId){
+    BoughtPosition created = new BoughtPosition();
+    created.setQuantity(source.getQuantity());
+    created.setOrder(findOrderById(orderId));
+    created.setMenuPosition(menuPositionService.findById(source.getMenuPositionId()));
+    return created;
   }
 
   private void throwErrorIfCommited(Order order)throws IllegalStateException{
@@ -50,33 +64,36 @@ public class OrderService {
   @Transactional
   public OrderReadModel increaseBoughtPositionInCurrentOrder(BoughtPositionWriteModel addition, int orderId){
     //get current order or create new one
-    Order currentOrder = orderRepository.findById(orderId).orElse(create());
-    throwErrorIfCommited(currentOrder);
+    Order currentOrder;
+    try{
+      currentOrder = findOrderById(orderId);
+      throwErrorIfCommited(currentOrder);
+    } catch (IllegalArgumentException e){
+      currentOrder = createOrder();
+      System.out.println("creating! id:"+currentOrder.getId());
+    }
 
-    //check if i have this menu position already in order
+    //check if i have addition already in order
     if(currentOrder.getBoughtPositions().stream().anyMatch(
         el -> el.getMenuPosition().getId() == addition.getMenuPositionId())){
 
-      //if so, just increase the quantity instead
+      //if so, just increase the quantity
       currentOrder.getBoughtPositions().forEach(element ->{
         if(element.getMenuPosition().getId()==addition.getMenuPositionId()){
           element.setQuantity(element.getQuantity()+addition.getQuantity());}
       });
     } else {
       //else, creaete new one and add to order
-      var saved = boughtPositionService.save(addition);
-      currentOrder.getBoughtPositions().add(boughtPositionRepository.findById(saved.getId()).orElseThrow(
-          ()-> new IllegalArgumentException("no such bought position")
-      ));
+      var created = createBoughtPosition(addition, orderId);
+      em.persist(created);
+      currentOrder.getBoughtPositions().add(created);
     }
     return new OrderReadModel(currentOrder);
   }
 
   @Transactional
   public OrderReadModel decreaseBoughtPositionInCurrentOrder(int boughtPositionId, int orderId){
-    Order currentOrder = orderRepository.findById(orderId).orElseThrow(
-        ()-> new IllegalArgumentException("no such order!"));
-    throwErrorIfCommited(currentOrder);
+    Order currentOrder = findOrderById(orderId);
 
     //i would prefer stream or foreach, but else modifies source and needs to break immediately
     for(int i=0; i<currentOrder.getBoughtPositions().size();i++){
@@ -84,7 +101,7 @@ public class OrderService {
       if(element.getMenuPosition().getId()==boughtPositionId){
         if(element.getQuantity()==1){
           currentOrder.getBoughtPositions().remove(element);
-          boughtPositionRepository.delete(element);
+          em.remove(element);
         } else {
           element.setQuantity(element.getQuantity()-1);
         }
@@ -96,26 +113,80 @@ public class OrderService {
 
   @Transactional
   public OrderCommitedReadModel commitOrder(OrderCommitWriteModel order, int orderId){
-    Order currentOrder = orderRepository.findById(orderId).orElseThrow(
-        ()-> new IllegalArgumentException("no such order!"));
-    throwErrorIfCommited(currentOrder);
+    Order currentOrder = findOrderById(orderId);
 
     currentOrder.setComment(order.getComment());
     currentOrder.setCommitedTime(LocalDateTime.now());
     currentOrder.setCommited(true);
     OrderCommitedReadModel commited = new OrderCommitedReadModel(currentOrder);
-    emailService.sendSimpleMessage("piomaj4@wp.pl","Zamówienie nr"+currentOrder.getId(),commited.toString());
+    executor.submit(() -> {
+      emailService.sendEmail(
+          "Zamówienie nr "+currentOrder.getId(),
+          "majewski.piotr.511@gmail.com",
+          "piomaj4@wp.pl",
+          commited.toFreemarkerModel());
+    });
     return commited;
   }
 
   public List<OrderReadModel> findAll(){
-    List<Order> result = orderRepository.findAll();
+    TypedQuery<Order> query = em.createQuery(
+        "SELECT DISTINCT o FROM Order o " +
+            "LEFT JOIN FETCH o.boughtPositions b " +
+            "LEFT JOIN FETCH b.menuPosition m ",
+        Order.class
+        )
+        .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false);
+
+    List<Order> result = query.getResultList();
     return result.stream().map(OrderReadModel::new).collect(Collectors.toList());
   }
 
-  public List<OrderCommitedReadModel> findAllCommited(boolean isCommited){
-    List<Order> result = orderRepository.findByCommited(isCommited);
-    return result.stream().map(OrderCommitedReadModel::new).collect(Collectors.toList());
+  public List<OrderHistoryReadModel> findAllCommited(boolean isCommited){
+    TypedQuery<Order> query = em.createQuery(
+        "SELECT DISTINCT o FROM Order o " +
+            "LEFT JOIN FETCH o.boughtPositions b " +
+            "LEFT JOIN FETCH b.menuPosition m " +
+            "WHERE o.commited = :isCommited",
+        Order.class
+    )
+        .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false)
+        .setParameter("isCommited",isCommited);
+
+    List<Order> result = query.getResultList();
+    return result.stream().map(OrderHistoryReadModel::new).collect(Collectors.toList());
+  }
+
+  private Order findOrderById(int id){
+    Order result;
+    try{
+      result = em.createQuery(
+        "SELECT DISTINCT o FROM Order o " +
+            "LEFT JOIN FETCH o.boughtPositions b " +
+            "LEFT JOIN FETCH b.menuPosition m " +
+            "WHERE o.id = :id",
+          Order.class)
+        .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false)
+        .setParameter("id",id)
+        .getSingleResult();
+      return result;
+    }catch(NoResultException e){
+      throw new IllegalArgumentException("no such order!");
+    }
+  }
+
+  private BoughtPosition findBoughtPositionById(int id){
+    TypedQuery<BoughtPosition> query = em.createQuery(
+        "SELECT b FROM BoughtPosition b " +
+            "LEFT JOIN FETCH b.menuPosition bm " +
+            "WHERE b.id = :id",
+        BoughtPosition.class
+    ).setParameter("id",id);
+    try{
+      return query.getSingleResult();
+    }catch(NoResultException e ){
+      throw new IllegalArgumentException("No such bought position!");
+    }
   }
 
 

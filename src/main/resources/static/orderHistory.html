@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Historia zamówień</title>
+    <link rel="stylesheet" href="https://igoradamenko.github.io/awsm.css/css/awsm.min.css">
+</head>
+<body>
+<main>
+    <nav>
+        <button id="menu">Menu</button>
+    </nav>
+    <h3>Historia zamówień</h3>
+    <div>
+        <button class="showHistory" id="commited">Pokaż zatwierdzone zamówienia</button>
+        <button class="showHistory" id="uncommited">Pokaż niezatwierdzone zamówienia</button>
+    </div>
+
+</main>
+<script>
+    const menuButton = document.getElementById("menu");
+    menuButton.addEventListener('click', event =>{
+        const win = window.open("index.html", '_blank');
+        win.focus();
+    });
+    const main = document.querySelector('main');
+    let showed = false;
+    let showedCounter = 0;
+    for (const item of document.querySelectorAll(".showHistory")) {
+        item.addEventListener('click', async event =>{
+            event.preventDefault();
+            var resp;
+            if (item.id==="commited"){
+                resp = await fetch(`http://localhost:8080/orders?`+ new URLSearchParams({
+                    isCommited: `${true}`,
+                }), {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+            }else{
+                resp = await fetch(`http://localhost:8080/orders?`+ new URLSearchParams({
+                    isCommited: `${false}`,
+                }), {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+            }
+            const currentOrder = await resp.json();
+            if(showed){
+                for(let j=0;j<showedCounter;j++){
+                    main.removeChild(main.lastChild);
+                }
+            }
+            showedCounter = 0;
+            let i;
+            currentOrder.forEach(order=>{
+                var time;
+                if(order.commitedTime == null){
+                    time = "brak";
+                } else {
+                    time = order.commitedTime;
+                }
+                const orderDiv = document.createElement('div')
+                orderDiv.innerHTML = `<p>Zamówienie nr: ${order.id} czas zakupu: ${time} koszt:${order.cost}zł</p>`;
+                const listOfPositions = document.createElement('ul');
+                i=0;
+                order.boughtPositionsNames.forEach(item => {
+                    const listElement = document.createElement('li');
+                    listElement.innerHTML = `<p>${item}, sztuk: ${order.quantities[i]}, koszt sztuki: ${order.boughtPositionCosts[i]}zł`;
+                    i =+ 1;
+                    listOfPositions.appendChild(listElement);
+                })
+                orderDiv.appendChild(listOfPositions);
+                main.appendChild(orderDiv);
+                showed = true;
+                showedCounter += 1;
+            })
+        })
+    }
+</script>
+</body>
+</html>
+

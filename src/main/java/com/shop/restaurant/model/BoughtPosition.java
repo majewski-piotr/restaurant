@@ -11,6 +11,9 @@ public class BoughtPosition {
   @OneToOne
   private MenuPosition menuPosition;
   private int quantity;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "orders_id")
+  private Order order;
 
   public int getId() {
     return id;
@@ -30,5 +33,13 @@ public class BoughtPosition {
 
   public void setQuantity(int quantity) {
     this.quantity = quantity;
+  }
+
+  public Order getOrder() {
+    return order;
+  }
+
+  public void setOrder(Order order) {
+    this.order = order;
   }
 }

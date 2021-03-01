@@ -5,6 +5,8 @@ public class BoughtPositionWriteModel {
   private int menuPositionId;
   private int quantity;
 
+
+
   public int getMenuPositionId() {
     return menuPositionId;
   }

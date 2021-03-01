@@ -2,9 +2,14 @@ package com.shop.restaurant.model.dto;
 
 import com.shop.restaurant.model.Order;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OrderCommitedReadModel {
   private int id;
@@ -13,7 +18,7 @@ public class OrderCommitedReadModel {
   private List<Integer> quantities;
   private String comment;
   private int cost;
-  private LocalDateTime commitedTime;
+  private String commitedTime;
 
 
   public OrderCommitedReadModel(Order source) {
@@ -28,7 +33,7 @@ public class OrderCommitedReadModel {
       this.quantities.add(boughtPosition.getQuantity());
       this.cost += (boughtPosition.getMenuPosition().getCost() * boughtPosition.getQuantity());
     });
-    this.commitedTime = source.getCommitedTime();
+    this.commitedTime =  source.getCommitedTime().plusHours(1).format(DateTimeFormatter.ofPattern("HH:mm"));
   }
 
   public List<Integer> getBoughtPositionCosts() {
@@ -63,11 +68,11 @@ public class OrderCommitedReadModel {
     this.cost = cost;
   }
 
-  public LocalDateTime getCommitedTime() {
+  public String getCommitedTime() {
     return commitedTime;
   }
 
-  public void setCommitedTime(LocalDateTime commitedTime) {
+  public void setCommitedTime(String commitedTime) {
     this.commitedTime = commitedTime;
   }
 
@@ -89,13 +94,33 @@ public class OrderCommitedReadModel {
 
   @Override
   public String toString() {
-    String message =  "Dziękujemy za zamówienie!\n\nZakupione produkty:\n\n";
+    String czasDostawy = commitedTime;
+    String message =  "Dziękujemy za zamówienie!\n\nSzacowana godzina dostawy: "
+        +czasDostawy+"\n\nTwoje zamówienie:\n";
 
     for(int i=0;i<this.quantities.size();i++){
     message = message.concat(
         this.boughtPositionsNames.get(i) + ":\t"+this.quantities.get(i)+"\tx\t"+this.boughtPositionCosts.get(i)+"zł\n");
     };
-    message = message.concat("\nKoszt całkowity:\t"+this.cost+"zł");
+    message = message.concat("\nKoszt całkowity:\t"+this.cost+"zł\n");
+    message = message.concat("\nUwagi do zamówienia:\n"+comment);
     return message;
   }
+
+  public Map< String, Object > toFreemarkerModel(){
+
+    List<String> rows = new ArrayList<>();
+    for(int i = 0; i<this.boughtPositionsNames.size();i++){
+      String rawString = this.boughtPositionsNames.get(i)+": "
+          +this.quantities.get(i)+" x "
+          +this.boughtPositionCosts.get(i)+"zł";
+      rows.add(rawString);
+    }
+    Map < String, Object > model = new HashMap< String, Object >();
+    model.put("rows", rows);
+    model.put("totalCost", this.cost);
+    model.put("time", this.commitedTime);
+    return model;
+  }
+
 }
