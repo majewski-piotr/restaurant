@@ -1,8 +1,8 @@
 package com.shop.restaurant.service;
 
-import com.shop.restaurant.model.dto.MenuPositionReadModel;
-import com.shop.restaurant.model.dto.MenuPositionWriteModel;
-import com.shop.restaurant.model.MenuPosition;
+import com.shop.restaurant.model.MenuPositionReadModel;
+import com.shop.restaurant.model.MenuPositionWriteModel;
+import com.shop.restaurant.persistence.MenuPosition;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

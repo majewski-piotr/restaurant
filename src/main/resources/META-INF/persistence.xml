@@ -4,10 +4,10 @@
              version="2.0" xmlns="http://java.sun.com/xml/ns/persistence">
 
     <persistence-unit name="shop" transaction-type="RESOURCE_LOCAL">
-        <class>com.shop.restaurant.model.Order</class>
-        <class>com.shop.restaurant.model.BoughtPosition</class>
-        <class>com.shop.restaurant.model.MenuPosition</class>
-        <class>com.shop.restaurant.model.Category</class>
+        <class>com.shop.restaurant.persistence.Order</class>
+        <class>com.shop.restaurant.persistence.BoughtPosition</class>
+        <class>com.shop.restaurant.persistence.MenuPosition</class>
+        <class>com.shop.restaurant.persistence.Category</class>
         <properties>
             <property name="javax.persistence.jdbc.driver" value="org.h2.Driver" />
             <property name="javax.persistence.jdbc.url"    value="jdbc:h2:mem:restaurantdb" />

@@ -1,4 +1,4 @@
-package com.shop.restaurant.model.dto;
+package com.shop.restaurant.model;
 
 public class MenuPositionWriteModel {
   private int cost;

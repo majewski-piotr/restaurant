@@ -1,10 +1,7 @@
-package com.shop.restaurant.model.dto;
+package com.shop.restaurant.model;
 
-import com.shop.restaurant.model.Order;
+import com.shop.restaurant.persistence.Order;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;

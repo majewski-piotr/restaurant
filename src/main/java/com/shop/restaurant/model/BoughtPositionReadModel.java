@@ -1,6 +1,6 @@
-package com.shop.restaurant.model.dto;
+package com.shop.restaurant.model;
 
-import com.shop.restaurant.model.BoughtPosition;
+import com.shop.restaurant.persistence.BoughtPosition;
 
 public class BoughtPositionReadModel {
   private int orderId;

@@ -1,8 +1,9 @@
 package com.shop.restaurant.service;
 
+import com.shop.restaurant.model.*;
 import com.shop.restaurant.model.dto.*;
-import com.shop.restaurant.model.BoughtPosition;
-import com.shop.restaurant.model.Order;
+import com.shop.restaurant.persistence.BoughtPosition;
+import com.shop.restaurant.persistence.Order;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

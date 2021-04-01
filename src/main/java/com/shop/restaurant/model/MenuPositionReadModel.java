@@ -1,6 +1,6 @@
-package com.shop.restaurant.model.dto;
+package com.shop.restaurant.model;
 
-import com.shop.restaurant.model.MenuPosition;
+import com.shop.restaurant.persistence.MenuPosition;
 
 public class MenuPositionReadModel {
   private int id;
