@@ -33,8 +33,8 @@
         if (response.ok) {
             const categories = await response.json();
             const categoriesList = document.createElement('ul');
-            for (const category of categories) {
-                categoriesList.appendChild(await createCategory(category));
+            for (const categoryEntity of categories) {
+                categoriesList.appendChild(await createCategory(categoryEntity));
             }
             main.append(categoriesList);
             await addEventListenersToMenuButtons();

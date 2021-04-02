@@ -1,6 +1,6 @@
 package com.shop.restaurant.service;
 
-import com.shop.restaurant.persistence.Category;
+import com.shop.restaurant.persistence.CategoryEntity;
 import com.shop.restaurant.persistence.MenuPosition;
 import com.shop.restaurant.model.CategoryReadModel;
 import com.shop.restaurant.model.CategoryWriteModel;
@@ -21,8 +21,8 @@ public class CategoryService {
   @PersistenceContext
   EntityManager em;
 
-  private Category create(CategoryWriteModel source){
-    Category created = new Category();
+  private CategoryEntity create(CategoryWriteModel source){
+    CategoryEntity created = new CategoryEntity();
     created.setName(source.getName());
     if(source.isFixedCost()){
       created.setFixedCost(source.isFixedCost());
@@ -33,21 +33,19 @@ public class CategoryService {
 
   @Transactional
   public CategoryReadModel save(CategoryWriteModel source){
-    Category created = create(source);
+    CategoryEntity created = create(source);
     em.persist(created);
     return new CategoryReadModel(created);
   }
 
-  public List<CategoryReadModel> findAll(){
-    TypedQuery<Category> query = em.createQuery(
-        "SELECT DISTINCT c FROM Category c",Category.class
+  public List<CategoryEntity> findAll(){
+    TypedQuery<CategoryEntity> query = em.createQuery(
+        "SELECT DISTINCT c FROM CategoryEntity c", CategoryEntity.class
     ).setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false);
 
-    return query.getResultList().stream()
-        .map(CategoryReadModel::new)
-        .collect(Collectors.toList());
+    return query.getResultList();
   }
-  public List<MenuPositionReadModel> findByCategoryId(int id){
+  public List<MenuPosition> findByCategoryId(int id){
     TypedQuery<MenuPosition> query = em.createQuery(
         "SELECT DISTINCT m FROM MenuPosition m WHERE m.category.id = :id",
         MenuPosition.class
@@ -55,14 +53,12 @@ public class CategoryService {
         .setParameter("id",id)
         .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false);
 
-    return query.getResultList().stream()
-        .map(MenuPositionReadModel::new)
-        .collect(Collectors.toList());
+    return query.getResultList();
   }
 
-  Category findById(int id){
-    TypedQuery<Category> query = em.createQuery(
-        "SELECT c FROM Category c where c.id = :id", Category.class
+  CategoryEntity findById(int id){
+    TypedQuery<CategoryEntity> query = em.createQuery(
+        "SELECT c FROM CategoryEntity c where c.id = :id", CategoryEntity.class
     ).setParameter("id",id);
     try{
       return query.getSingleResult();

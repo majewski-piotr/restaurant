@@ -7,7 +7,7 @@
         <class>com.shop.restaurant.persistence.Order</class>
         <class>com.shop.restaurant.persistence.BoughtPosition</class>
         <class>com.shop.restaurant.persistence.MenuPosition</class>
-        <class>com.shop.restaurant.persistence.Category</class>
+        <class>com.shop.restaurant.persistence.CategoryEntity</class>
         <properties>
             <property name="javax.persistence.jdbc.driver" value="org.h2.Driver" />
             <property name="javax.persistence.jdbc.url"    value="jdbc:h2:mem:restaurantdb" />

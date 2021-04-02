@@ -1,6 +1,6 @@
 package com.shop.restaurant.model;
 
-import com.shop.restaurant.persistence.Category;
+import com.shop.restaurant.persistence.CategoryEntity;
 
 public class CategoryReadModel {
   private int id;
@@ -8,7 +8,7 @@ public class CategoryReadModel {
   boolean fixedCost;
   int fixedCostValue;
 
-  public CategoryReadModel(Category source) {
+  public CategoryReadModel(CategoryEntity source) {
     this.id = source.getId();
     this.name = source.getName();
     this.fixedCost = source.isFixedCost();

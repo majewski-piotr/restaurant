@@ -1,19 +1,21 @@
-package com.shop.restaurant.persistence;
+package com.shop.restaurant.model;
 
-import javax.persistence.*;
+import java.util.List;
 
-@Entity
-@Table(name = "categories")
 public class Category {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+
   private int id;
   private String name;
   boolean fixedCost;
   int fixedCostValue;
+  private List<Position> positions;
 
   public int getId() {
     return id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
   }
 
   public String getName() {
@@ -38,5 +40,13 @@ public class Category {
 
   public void setFixedCostValue(int fixedCostValue) {
     this.fixedCostValue = fixedCostValue;
+  }
+
+  public List<Position> getPositions() {
+    return positions;
+  }
+
+  public void setPositions(List<Position> positions) {
+    this.positions = positions;
   }
 }
