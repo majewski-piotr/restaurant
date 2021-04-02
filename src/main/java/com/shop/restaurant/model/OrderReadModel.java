@@ -1,5 +1,5 @@
-package com.shop.restaurant.model.dto;
-import com.shop.restaurant.model.Order;
+package com.shop.restaurant.model;
+import com.shop.restaurant.persistence.Order;
 
 import java.util.ArrayList;
 import java.util.List;

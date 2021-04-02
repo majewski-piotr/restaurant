@@ -1,4 +1,4 @@
-package com.shop.restaurant.model;
+package com.shop.restaurant.persistence;
 
 import javax.persistence.*;
 

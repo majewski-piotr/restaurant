@@ -1,6 +1,6 @@
-package com.shop.restaurant.model.dto;
+package com.shop.restaurant.model;
 
-import com.shop.restaurant.model.Category;
+import com.shop.restaurant.persistence.Category;
 
 public class CategoryReadModel {
   private int id;

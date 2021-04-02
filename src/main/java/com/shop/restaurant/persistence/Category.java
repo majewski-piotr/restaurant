@@ -1,9 +1,20 @@
-package com.shop.restaurant.model.dto;
+package com.shop.restaurant.persistence;
 
-public class CategoryWriteModel {
+import javax.persistence.*;
+
+@Entity
+@Table(name = "categories")
+public class Category {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private int id;
   private String name;
   boolean fixedCost;
   int fixedCostValue;
+
+  public int getId() {
+    return id;
+  }
 
   public String getName() {
     return name;

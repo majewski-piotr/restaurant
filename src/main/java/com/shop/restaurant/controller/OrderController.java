@@ -1,6 +1,7 @@
 package com.shop.restaurant.controller;
 
 
+import com.shop.restaurant.model.*;
 import com.shop.restaurant.model.dto.*;
 import com.shop.restaurant.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;

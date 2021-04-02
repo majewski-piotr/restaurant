@@ -1,8 +1,8 @@
 package com.shop.restaurant.controller;
 
-import com.shop.restaurant.model.dto.CategoryReadModel;
-import com.shop.restaurant.model.dto.CategoryWriteModel;
-import com.shop.restaurant.model.dto.MenuPositionReadModel;
+import com.shop.restaurant.model.CategoryReadModel;
+import com.shop.restaurant.model.CategoryWriteModel;
+import com.shop.restaurant.model.MenuPositionReadModel;
 import com.shop.restaurant.service.CategoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

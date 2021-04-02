@@ -1,13 +1,10 @@
-package com.shop.restaurant.model.dto;
+package com.shop.restaurant.model;
 
-import com.shop.restaurant.model.Order;
+import com.shop.restaurant.persistence.Order;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class OrderHistoryReadModel {
   private int id;

@@ -1,10 +1,10 @@
 package com.shop.restaurant.service;
 
-import com.shop.restaurant.model.Category;
-import com.shop.restaurant.model.MenuPosition;
-import com.shop.restaurant.model.dto.CategoryReadModel;
-import com.shop.restaurant.model.dto.CategoryWriteModel;
-import com.shop.restaurant.model.dto.MenuPositionReadModel;
+import com.shop.restaurant.persistence.Category;
+import com.shop.restaurant.persistence.MenuPosition;
+import com.shop.restaurant.model.CategoryReadModel;
+import com.shop.restaurant.model.CategoryWriteModel;
+import com.shop.restaurant.model.MenuPositionReadModel;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +13,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-import java.awt.*;
 import java.util.List;
 import java.util.stream.Collectors;
 

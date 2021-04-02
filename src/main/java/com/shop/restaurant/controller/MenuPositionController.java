@@ -1,7 +1,7 @@
 package com.shop.restaurant.controller;
 
-import com.shop.restaurant.model.dto.MenuPositionReadModel;
-import com.shop.restaurant.model.dto.MenuPositionWriteModel;
+import com.shop.restaurant.model.MenuPositionReadModel;
+import com.shop.restaurant.model.MenuPositionWriteModel;
 import com.shop.restaurant.service.MenuPositionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
