@@ -42,7 +42,7 @@ public class MenuService {
           categories.add(category);
         }
         );
-    menu.setMenu(categories);
+    menu.setCategories(categories);
     return menu;
   }
 }

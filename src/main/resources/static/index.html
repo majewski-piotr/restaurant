@@ -27,31 +27,31 @@
         const win = window.open("orderHistory.html", '_blank');
         win.focus();
     });
-    (function() {
+    (async function() {
         let main = document.querySelector('main');
-        const response =  fetch('http://localhost:8080/menu',{method:'GET'});
+        const response =  await fetch('http://localhost:8080/menu',{method:'GET'});
         if (response.ok) {
-            const menu = response.json();
+            const menu = await response.json();
             const categoriesList = document.createElement('ul');
-            for (const category of menu) {
-                categoriesList.appendChild(createCategory(categoryEntity));
+            for (const category of menu.categories) {
+                categoriesList.appendChild(createCategory(category));
             }
             main.append(categoriesList);
-            // addEventListenersToMenuButtons();
+            // await addEventListenersToMenuButtons();
         }
         function createCategory({ id, name, fixedCost, fixedCostValue, positions}) {
             const category = document.createElement('li');
             const menuPositionsList = document.createElement('ul');
             for (const position of positions) {
-                menuPositionsList.appendChild(createMenuPosition(positionEntity, fixedCost));
+                menuPositionsList.appendChild(createMenuPosition(position, fixedCost));
             }
             if(fixedCost){
-                result.innerHTML = `<label>${name} - ${fixedCostValue}zł</label>`
+                category.innerHTML = `<label>${name} - ${fixedCostValue}zł</label>`
             }else{
-                result.innerHTML = `<label>${name}</label>`
+                category.innerHTML = `<label>${name}</label>`
             }
-            result.append(menuPositionsList);
-            return result;
+            category.append(menuPositionsList);
+            return category;
         }
         function createMenuPosition({id,cost,name},fixedCost){
 
@@ -69,7 +69,7 @@
             }
             return result;
         }
-    // })();
+    })();
     // async function updateCurrentOrderView({id,boughtPositionsNames,boughtPositionsIds,boughtPositionsQuantities,
     //                                     boughtPositionsPrices, comment,cost}) {
     //     orderId = id;

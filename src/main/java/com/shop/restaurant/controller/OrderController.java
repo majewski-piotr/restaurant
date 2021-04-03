@@ -20,7 +20,7 @@ public class OrderController {
     this.orderService = orderService;
   }
 
-  @GetMapping
+  @PatchMapping
   ResponseEntity<Order> updateCost(@RequestBody Order order){
     Order created = orderService.updateCost(order);
     return ResponseEntity.ok(created);

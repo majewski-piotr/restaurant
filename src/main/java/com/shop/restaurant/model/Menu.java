@@ -5,14 +5,14 @@ import jdk.dynalink.linker.LinkerServices;
 import java.util.List;
 
 public class Menu {
- private List<Category> menu;
+ private List<Category> categories;
 
-  public List<Category> getMenu() {
-    return menu;
+  public List<Category> getCategories() {
+    return categories;
   }
 
-  public void setMenu(List<Category> menu) {
-    this.menu = menu;
+  public void setCategories(List<Category> categories) {
+    this.categories = categories;
   }
 }
 

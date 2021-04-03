@@ -13,7 +13,7 @@ public class BoughtPositionEntity {
   private int quantity;
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "orders_id")
-  private OrderEntity orderEntity;
+  private OrderEntity order;
 
   public int getId() {
     return id;
@@ -36,10 +36,10 @@ public class BoughtPositionEntity {
   }
 
   public OrderEntity getOrder() {
-    return orderEntity;
+    return order;
   }
 
-  public void setOrder(OrderEntity orderEntity) {
-    this.orderEntity = orderEntity;
+  public void setOrder(OrderEntity order) {
+    this.order = order;
   }
 }

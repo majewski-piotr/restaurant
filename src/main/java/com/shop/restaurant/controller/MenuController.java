@@ -21,6 +21,7 @@ public class MenuController {
 
   @GetMapping
   ResponseEntity<Menu> getMenu(){
+    System.out.println("\ncontroller up!\n");
     Menu result = menuService.createMenu();
     return ResponseEntity.ok(result);
   }

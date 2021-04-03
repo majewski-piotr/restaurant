@@ -3,7 +3,7 @@ package com.shop.restaurant.persistence;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "menuPositions")
+@Table(name = "positions")
 public class PositionEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
