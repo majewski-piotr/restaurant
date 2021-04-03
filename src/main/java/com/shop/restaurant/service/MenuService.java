@@ -4,7 +4,6 @@ import com.shop.restaurant.model.Category;
 import com.shop.restaurant.model.Menu;
 import com.shop.restaurant.model.Position;
 import com.shop.restaurant.persistence.CategoryEntity;
-import com.shop.restaurant.persistence.MenuPosition;
 import com.shop.restaurant.utils.CategoryConverter;
 import com.shop.restaurant.utils.PositionConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +14,6 @@ import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.shop.restaurant.utils.PositionConverter.createModel;
-import static com.shop.restaurant.utils.CategoryConverter.*;
 
 @Service
 public class MenuService {

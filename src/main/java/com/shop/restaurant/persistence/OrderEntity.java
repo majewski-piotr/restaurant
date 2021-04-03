@@ -6,14 +6,13 @@ import java.util.List;
 
 @Entity
 @Table(name="orders")
-public class Order {
+public class OrderEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "order")
-  private List<BoughtPosition> boughtPositions;
+  private List<BoughtPositionEntity> boughtPositionEntities;
   private String comment;
-  private boolean commited;
   private LocalDateTime commitedTime;
 
   public LocalDateTime getCommitedTime() {
@@ -28,12 +27,12 @@ public class Order {
     return id;
   }
 
-  public List<BoughtPosition> getBoughtPositions() {
-    return boughtPositions;
+  public List<BoughtPositionEntity> getBoughtPositions() {
+    return boughtPositionEntities;
   }
 
-  public void setBoughtPositions(List<BoughtPosition> boughtPositions) {
-    this.boughtPositions = boughtPositions;
+  public void setBoughtPositions(List<BoughtPositionEntity> boughtPositionEntities) {
+    this.boughtPositionEntities = boughtPositionEntities;
   }
 
   public String getComment() {
@@ -42,13 +41,5 @@ public class Order {
 
   public void setComment(String comment) {
     this.comment = comment;
-  }
-
-  public boolean isCommited() {
-    return commited;
-  }
-
-  public void setCommited(boolean commited) {
-    this.commited = commited;
   }
 }

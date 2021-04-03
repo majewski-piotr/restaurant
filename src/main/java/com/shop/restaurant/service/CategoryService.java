@@ -1,7 +1,7 @@
 package com.shop.restaurant.service;
 
 import com.shop.restaurant.persistence.CategoryEntity;
-import com.shop.restaurant.persistence.MenuPosition;
+import com.shop.restaurant.persistence.PositionEntity;
 import com.shop.restaurant.model.CategoryReadModel;
 import com.shop.restaurant.model.CategoryWriteModel;
 import com.shop.restaurant.model.MenuPositionReadModel;
@@ -14,7 +14,6 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
@@ -45,10 +44,10 @@ public class CategoryService {
 
     return query.getResultList();
   }
-  public List<MenuPosition> findByCategoryId(int id){
-    TypedQuery<MenuPosition> query = em.createQuery(
-        "SELECT DISTINCT m FROM MenuPosition m WHERE m.category.id = :id",
-        MenuPosition.class
+  public List<PositionEntity> findByCategoryId(int id){
+    TypedQuery<PositionEntity> query = em.createQuery(
+        "SELECT DISTINCT m FROM PositionEntity m WHERE m.category.id = :id",
+        PositionEntity.class
     )
         .setParameter("id",id)
         .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false);

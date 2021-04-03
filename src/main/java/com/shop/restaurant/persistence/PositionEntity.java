@@ -4,7 +4,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "menuPositions")
-public class MenuPosition {
+public class PositionEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
@@ -13,16 +13,16 @@ public class MenuPosition {
   @ManyToOne(fetch= FetchType.LAZY)
   CategoryEntity categoryEntity;
 
-  public MenuPosition(){
+  public PositionEntity(){
   }
 
-  public MenuPosition(int cost, String name, CategoryEntity categoryEntity) {
+  public PositionEntity(int cost, String name, CategoryEntity categoryEntity) {
     this.cost = cost;
     this.name = name;
     this.categoryEntity = categoryEntity;
   }
 
-  public MenuPosition(String name, CategoryEntity categoryEntity) {
+  public PositionEntity(String name, CategoryEntity categoryEntity) {
     this.name = name;
     this.categoryEntity = categoryEntity;
     this.cost = categoryEntity.getFixedCostValue();

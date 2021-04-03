@@ -44,8 +44,8 @@
             const catResponse =  await fetch(`http://localhost:8080/categories/${id}/menupositions`,{method:'GET'});
             const menuPositions = await catResponse.json();
             const menuPositionsList = document.createElement('ul');
-            for (const menuPosition of menuPositions) {
-                menuPositionsList.appendChild(await createMenuPosition(menuPosition, fixedCost));
+            for (const positionEntity of menuPositions) {
+                menuPositionsList.appendChild(await createMenuPosition(positionEntity, fixedCost));
             }
             if(fixedCost){
                 result.innerHTML = `<label>${name} - ${fixedCostValue}zł</label>`
@@ -146,8 +146,8 @@
                         quantity: 1
                     })
                 })
-                const currentOrder = await resp.json();
-                await updateCurrentOrderView(currentOrder);
+                const currentOrderEntity = await resp.json();
+                await updateCurrentOrderView(currentOrderEntity);
             })
             j = j+1;
         })
@@ -165,8 +165,8 @@
                         'Content-Type': 'application/json'
                     }
                 })
-                const currentOrder = await resp.json();
-                await updateCurrentOrderView(currentOrder);
+                const currentOrderEntity = await resp.json();
+                await updateCurrentOrderView(currentOrderEntity);
             })
             j = j + 1;
         })
@@ -187,8 +187,8 @@
                         }
                     })
                     if (resp.ok){
-                        const order = await resp.json();
-                        orderId= order.id;
+                        const orderEntity = await resp.json();
+                        orderId= orderEntity.id;
                     }
                 }
                 //APPENDING TO ORDER
@@ -204,8 +204,8 @@
                     })
                 })
 
-                const currentOrder = await resp.json();
-                await updateCurrentOrderView(currentOrder);
+                const currentOrderEntity = await resp.json();
+                await updateCurrentOrderView(currentOrderEntity);
             })
         })
     }
@@ -222,15 +222,15 @@
             })
         })
         if (resp.ok) {
-            const currentOrder = await resp.json();
+            const currentOrderEntity = await resp.json();
             const commitedOrder = {
-                "id":currentOrder.id,
-                "boughtPositionsNames":currentOrder.boughtPositionsNames,
-                "boughtPositionCosts":currentOrder.boughtPositionCosts,
-                "quantities":currentOrder.quantities,
-                "comment":currentOrder.comment,
-                "cost":currentOrder.cost,
-                "commitedTime":currentOrder.commitedTime
+                "id":currentOrderEntity.id,
+                "boughtPositionsNames":currentOrderEntity.boughtPositionsNames,
+                "boughtPositionCosts":currentOrderEntity.boughtPositionCosts,
+                "quantities":currentOrderEntity.quantities,
+                "comment":currentOrderEntity.comment,
+                "cost":currentOrderEntity.cost,
+                "commitedTime":currentOrderEntity.commitedTime
             };
 
             window.localStorage.setItem("commitedOrder", JSON.stringify(commitedOrder));

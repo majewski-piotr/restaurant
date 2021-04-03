@@ -2,7 +2,7 @@ package com.shop.restaurant.service;
 
 import com.shop.restaurant.model.MenuPositionReadModel;
 import com.shop.restaurant.model.MenuPositionWriteModel;
-import com.shop.restaurant.persistence.MenuPosition;
+import com.shop.restaurant.persistence.PositionEntity;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,8 +27,8 @@ public class MenuPositionService {
   @PersistenceContext
   EntityManager em;
 
-  private MenuPosition create(MenuPositionWriteModel source){
-    MenuPosition created = new MenuPosition();
+  private PositionEntity create(MenuPositionWriteModel source){
+    PositionEntity created = new PositionEntity();
 
     created.setName(source.getName());
     created.setCategory(categoryService.findById(source.getCategoryId()));
@@ -43,24 +43,24 @@ public class MenuPositionService {
 
   @Transactional
   public MenuPositionReadModel save(MenuPositionWriteModel source){
-    MenuPosition created = create(source);
+    PositionEntity created = create(source);
     em.persist(created);
     return new MenuPositionReadModel(created);
   }
 
   public List<MenuPositionReadModel> findAll(){
-    TypedQuery<MenuPosition> query = em.createQuery(
-        "SELECT DISTINCT m FROM MenuPosition m LEFT JOIN FETCH m.category c",MenuPosition.class)
+    TypedQuery<PositionEntity> query = em.createQuery(
+        "SELECT DISTINCT m FROM PositionEntity m LEFT JOIN FETCH m.category c", PositionEntity.class)
         .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false);
     return query.getResultList().stream()
         .map(MenuPositionReadModel::new)
         .collect(Collectors.toList());
   }
 
-  MenuPosition findById(int id){
-    TypedQuery<MenuPosition> query = em.createQuery(
-        "SELECT m FROM MenuPosition m LEFT JOIN FETCH m.category WHERE m.id = :id",
-        MenuPosition.class
+  PositionEntity findById(int id){
+    TypedQuery<PositionEntity> query = em.createQuery(
+        "SELECT m FROM PositionEntity m LEFT JOIN FETCH m.category WHERE m.id = :id",
+        PositionEntity.class
     ).setParameter("id",id);
     try{
       return query.getSingleResult();

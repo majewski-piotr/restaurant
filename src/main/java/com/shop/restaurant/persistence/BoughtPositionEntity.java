@@ -4,27 +4,27 @@ import javax.persistence.*;
 
 @Entity
 @Table(name="boughtPositions")
-public class BoughtPosition {
+public class BoughtPositionEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
   @OneToOne
-  private MenuPosition menuPosition;
+  private PositionEntity positionEntity;
   private int quantity;
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "orders_id")
-  private Order order;
+  private OrderEntity orderEntity;
 
   public int getId() {
     return id;
   }
 
-  public MenuPosition getMenuPosition() {
-    return menuPosition;
+  public PositionEntity getMenuPosition() {
+    return positionEntity;
   }
 
-  public void setMenuPosition(MenuPosition menuPosition) {
-    this.menuPosition = menuPosition;
+  public void setMenuPosition(PositionEntity positionEntity) {
+    this.positionEntity = positionEntity;
   }
 
   public int getQuantity() {
@@ -35,11 +35,11 @@ public class BoughtPosition {
     this.quantity = quantity;
   }
 
-  public Order getOrder() {
-    return order;
+  public OrderEntity getOrder() {
+    return orderEntity;
   }
 
-  public void setOrder(Order order) {
-    this.order = order;
+  public void setOrder(OrderEntity orderEntity) {
+    this.orderEntity = orderEntity;
   }
 }
