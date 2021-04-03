@@ -27,25 +27,23 @@
         const win = window.open("orderHistory.html", '_blank');
         win.focus();
     });
-    (async function() {
+    (function() {
         let main = document.querySelector('main');
-        const response =  await fetch('http://localhost:8080/categories',{method:'GET'});
+        const response =  fetch('http://localhost:8080/menu',{method:'GET'});
         if (response.ok) {
-            const categories = await response.json();
+            const menu = response.json();
             const categoriesList = document.createElement('ul');
-            for (const categoryEntity of categories) {
-                categoriesList.appendChild(await createCategory(categoryEntity));
+            for (const category of menu) {
+                categoriesList.appendChild(createCategory(categoryEntity));
             }
             main.append(categoriesList);
-            await addEventListenersToMenuButtons();
+            // addEventListenersToMenuButtons();
         }
-        async function createCategory({ id,name, isFixedCost, fixedCost, fixedCostValue }) {
-            const result = document.createElement('li');
-            const catResponse =  await fetch(`http://localhost:8080/categories/${id}/menupositions`,{method:'GET'});
-            const menuPositions = await catResponse.json();
+        function createCategory({ id, name, fixedCost, fixedCostValue, positions}) {
+            const category = document.createElement('li');
             const menuPositionsList = document.createElement('ul');
-            for (const positionEntity of menuPositions) {
-                menuPositionsList.appendChild(await createMenuPosition(positionEntity, fixedCost));
+            for (const position of positions) {
+                menuPositionsList.appendChild(createMenuPosition(positionEntity, fixedCost));
             }
             if(fixedCost){
                 result.innerHTML = `<label>${name} - ${fixedCostValue}zł</label>`
@@ -55,7 +53,7 @@
             result.append(menuPositionsList);
             return result;
         }
-        async function createMenuPosition({id,cost,name},fixedCost){
+        function createMenuPosition({id,cost,name},fixedCost){
 
 
             //MENUPOSITION BODY
@@ -71,172 +69,172 @@
             }
             return result;
         }
-    })();
-    async function updateCurrentOrderView({id,boughtPositionsNames,boughtPositionsIds,boughtPositionsQuantities,
-                                        boughtPositionsPrices, comment,cost}) {
-        orderId = id;
-        boughtPositionsNames_ = boughtPositionsNames;
-        boughtPositionsIds_ = boughtPositionsIds;
-        boughtPositionsQuantities_ = boughtPositionsQuantities;
-        boughtPositionsPrices_ = boughtPositionsPrices;
-        comment_ = comment;
-        cost_ = cost;
-
-
-        let main = document.querySelector('main');
-        if (basketExists){
-            main.removeChild(main.lastChild);
-        }
-        const view = document.createElement('ul')
-
-        const header = document.createElement('h4')
-        header.innerText = "Twój koszyk:";
-        view.prepend(header);
-
-        let i = 0;
-        boughtPositionsIds_.forEach(position => {
-            const row = document.createElement('li');
-            row.innerHTML =
-                `<label>${boughtPositionsNames_[i]}: ${boughtPositionsQuantities_[i]} x ${boughtPositionsPrices_[i]}zł</label>
-                <label>
-                <button class=addToOrderView>+</button>
-                <button class=removeFromOrderView>-</button>
-                </label>`
-            view.appendChild(row)
-            i = i + 1;
-        })
-        const orderCost = document.createElement('LABEL');
-        orderCost.innerText = `Całkowity koszt: ${cost}zł`;
-        let commentField = document.createElement('LABEL');
-        commentField.innerHTML = `<input type="text" placeholder="Type your comments.." id="myInput">`;
-        const orderCommit = document.createElement('LABEL');
-        orderCommit.innerHTML = `<button id=commit>zamów</button>`
-        view.appendChild(orderCost);
-        view.appendChild(commentField);
-        view.appendChild(orderCommit);
-        main.appendChild(view)
-        basketExists = true;
-        await addEventListenersToOrderViewButtons();
-
-        async function addEventListenerToCommitButton() {
-            const commitButton = document.querySelector('#commit');
-            commitButton.addEventListener('click', async event =>{
-                await storeCommitOrderAndCallAnotherPage();
-            })
-        }
-
-        await addEventListenerToCommitButton();
-    }
-    async function addEventListenersToOrderViewButtons(){
-
-        let j;
-        j=0;
-        document.querySelectorAll('.addToOrderView').forEach(item=>{
-            let currentBoughtPositionId = boughtPositionsIds_[j];
-            item.addEventListener('click',async event=>{
-                event.preventDefault();
-                const resp = await fetch(`http://localhost:8080/orders/${orderId}/increaseposition`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        menuPositionId: `${currentBoughtPositionId}`,
-                        quantity: 1
-                    })
-                })
-                const currentOrderEntity = await resp.json();
-                await updateCurrentOrderView(currentOrderEntity);
-            })
-            j = j+1;
-        })
-        j = 0;
-        document.querySelectorAll('.removeFromOrderView').forEach(item=> {
-            let currentBoughtPositionId = boughtPositionsIds_[j];
-            item.addEventListener('click', async event => {
-                event.preventDefault();
-                const resp = await fetch(`http://localhost:8080/orders/${orderId}/decreaseposition?`+ new URLSearchParams({
-                    boughtPositionId: `${currentBoughtPositionId}`,
-                }), {
-                    method: 'PATCH',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                const currentOrderEntity = await resp.json();
-                await updateCurrentOrderView(currentOrderEntity);
-            })
-            j = j + 1;
-        })
-    }
-    async function addEventListenersToMenuButtons(){
-        document.querySelectorAll('.addToOrder').forEach(item=>{
-            item.addEventListener('click',async event=>{
-                event.preventDefault();
-                if(orderId==null){
-
-
-                    //CREATING NEW ORDER
-                    const resp = await fetch("http://localhost:8080/orders",{
-                        method: 'post',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    })
-                    if (resp.ok){
-                        const orderEntity = await resp.json();
-                        orderId= orderEntity.id;
-                    }
-                }
-                //APPENDING TO ORDER
-                const resp = await fetch(`http://localhost:8080/orders/${orderId}/increaseposition`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        menuPositionId: item.id,
-                        quantity: 1
-                    })
-                })
-
-                const currentOrderEntity = await resp.json();
-                await updateCurrentOrderView(currentOrderEntity);
-            })
-        })
-    }
-    async function storeCommitOrderAndCallAnotherPage(){
-        const comment = document.getElementById("myInput").value;
-        const resp = await fetch(`http://localhost:8080/orders/${orderId}/commit`, {
-            method: 'PATCH',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                comment: comment
-            })
-        })
-        if (resp.ok) {
-            const currentOrderEntity = await resp.json();
-            const commitedOrder = {
-                "id":currentOrderEntity.id,
-                "boughtPositionsNames":currentOrderEntity.boughtPositionsNames,
-                "boughtPositionCosts":currentOrderEntity.boughtPositionCosts,
-                "quantities":currentOrderEntity.quantities,
-                "comment":currentOrderEntity.comment,
-                "cost":currentOrderEntity.cost,
-                "commitedTime":currentOrderEntity.commitedTime
-            };
-
-            window.localStorage.setItem("commitedOrder", JSON.stringify(commitedOrder));
-            document.location.href = '/commitedOrder.html';
-        }
-    }
+    // })();
+    // async function updateCurrentOrderView({id,boughtPositionsNames,boughtPositionsIds,boughtPositionsQuantities,
+    //                                     boughtPositionsPrices, comment,cost}) {
+    //     orderId = id;
+    //     boughtPositionsNames_ = boughtPositionsNames;
+    //     boughtPositionsIds_ = boughtPositionsIds;
+    //     boughtPositionsQuantities_ = boughtPositionsQuantities;
+    //     boughtPositionsPrices_ = boughtPositionsPrices;
+    //     comment_ = comment;
+    //     cost_ = cost;
+    //
+    //
+    //     let main = document.querySelector('main');
+    //     if (basketExists){
+    //         main.removeChild(main.lastChild);
+    //     }
+    //     const view = document.createElement('ul')
+    //
+    //     const header = document.createElement('h4')
+    //     header.innerText = "Twój koszyk:";
+    //     view.prepend(header);
+    //
+    //     let i = 0;
+    //     boughtPositionsIds_.forEach(position => {
+    //         const row = document.createElement('li');
+    //         row.innerHTML =
+    //             `<label>${boughtPositionsNames_[i]}: ${boughtPositionsQuantities_[i]} x ${boughtPositionsPrices_[i]}zł</label>
+    //             <label>
+    //             <button class=addToOrderView>+</button>
+    //             <button class=removeFromOrderView>-</button>
+    //             </label>`
+    //         view.appendChild(row)
+    //         i = i + 1;
+    //     })
+    //     const orderCost = document.createElement('LABEL');
+    //     orderCost.innerText = `Całkowity koszt: ${cost}zł`;
+    //     let commentField = document.createElement('LABEL');
+    //     commentField.innerHTML = `<input type="text" placeholder="Type your comments.." id="myInput">`;
+    //     const orderCommit = document.createElement('LABEL');
+    //     orderCommit.innerHTML = `<button id=commit>zamów</button>`
+    //     view.appendChild(orderCost);
+    //     view.appendChild(commentField);
+    //     view.appendChild(orderCommit);
+    //     main.appendChild(view)
+    //     basketExists = true;
+    //     await addEventListenersToOrderViewButtons();
+    //
+    //     async function addEventListenerToCommitButton() {
+    //         const commitButton = document.querySelector('#commit');
+    //         commitButton.addEventListener('click', async event =>{
+    //             await storeCommitOrderAndCallAnotherPage();
+    //         })
+    //     }
+    //
+    //     await addEventListenerToCommitButton();
+    // }
+    // async function addEventListenersToOrderViewButtons(){
+    //
+    //     let j;
+    //     j=0;
+    //     document.querySelectorAll('.addToOrderView').forEach(item=>{
+    //         let currentBoughtPositionId = boughtPositionsIds_[j];
+    //         item.addEventListener('click',async event=>{
+    //             event.preventDefault();
+    //             const resp = await fetch(`http://localhost:8080/orders/${orderId}/increaseposition`, {
+    //                 method: 'PATCH',
+    //                 headers: {
+    //                     'Accept': 'application/json',
+    //                     'Content-Type': 'application/json'
+    //                 },
+    //                 body: JSON.stringify({
+    //                     menuPositionId: `${currentBoughtPositionId}`,
+    //                     quantity: 1
+    //                 })
+    //             })
+    //             const currentOrderEntity = await resp.json();
+    //             await updateCurrentOrderView(currentOrderEntity);
+    //         })
+    //         j = j+1;
+    //     })
+    //     j = 0;
+    //     document.querySelectorAll('.removeFromOrderView').forEach(item=> {
+    //         let currentBoughtPositionId = boughtPositionsIds_[j];
+    //         item.addEventListener('click', async event => {
+    //             event.preventDefault();
+    //             const resp = await fetch(`http://localhost:8080/orders/${orderId}/decreaseposition?`+ new URLSearchParams({
+    //                 boughtPositionId: `${currentBoughtPositionId}`,
+    //             }), {
+    //                 method: 'PATCH',
+    //                 headers: {
+    //                     'Accept': 'application/json',
+    //                     'Content-Type': 'application/json'
+    //                 }
+    //             })
+    //             const currentOrderEntity = await resp.json();
+    //             await updateCurrentOrderView(currentOrderEntity);
+    //         })
+    //         j = j + 1;
+    //     })
+    // }
+    // async function addEventListenersToMenuButtons(){
+    //     document.querySelectorAll('.addToOrder').forEach(item=>{
+    //         item.addEventListener('click',async event=>{
+    //             event.preventDefault();
+    //             if(orderId==null){
+    //
+    //
+    //                 //CREATING NEW ORDER
+    //                 const resp = await fetch("http://localhost:8080/orders",{
+    //                     method: 'post',
+    //                     headers: {
+    //                         'Accept': 'application/json',
+    //                         'Content-Type': 'application/json'
+    //                     }
+    //                 })
+    //                 if (resp.ok){
+    //                     const orderEntity = await resp.json();
+    //                     orderId= orderEntity.id;
+    //                 }
+    //             }
+    //             //APPENDING TO ORDER
+    //             const resp = await fetch(`http://localhost:8080/orders/${orderId}/increaseposition`, {
+    //                 method: 'PATCH',
+    //                 headers: {
+    //                     'Accept': 'application/json',
+    //                     'Content-Type': 'application/json'
+    //                 },
+    //                 body: JSON.stringify({
+    //                     menuPositionId: item.id,
+    //                     quantity: 1
+    //                 })
+    //             })
+    //
+    //             const currentOrderEntity = await resp.json();
+    //             await updateCurrentOrderView(currentOrderEntity);
+    //         })
+    //     })
+    // }
+    // async function storeCommitOrderAndCallAnotherPage(){
+    //     const comment = document.getElementById("myInput").value;
+    //     const resp = await fetch(`http://localhost:8080/orders/${orderId}/commit`, {
+    //         method: 'PATCH',
+    //         headers: {
+    //             'Accept': 'application/json',
+    //             'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify({
+    //             comment: comment
+    //         })
+    //     })
+    //     if (resp.ok) {
+    //         const currentOrderEntity = await resp.json();
+    //         const commitedOrder = {
+    //             "id":currentOrderEntity.id,
+    //             "boughtPositionsNames":currentOrderEntity.boughtPositionsNames,
+    //             "boughtPositionCosts":currentOrderEntity.boughtPositionCosts,
+    //             "quantities":currentOrderEntity.quantities,
+    //             "comment":currentOrderEntity.comment,
+    //             "cost":currentOrderEntity.cost,
+    //             "commitedTime":currentOrderEntity.commitedTime
+    //         };
+    //
+    //         window.localStorage.setItem("commitedOrder", JSON.stringify(commitedOrder));
+    //         document.location.href = '/commitedOrder.html';
+    //     }
+    // }
 
 </script>
 </body>
