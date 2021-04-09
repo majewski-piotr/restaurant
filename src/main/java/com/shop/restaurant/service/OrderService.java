@@ -2,6 +2,7 @@ package com.shop.restaurant.service;
 
 import com.shop.restaurant.model.Order;
 import com.shop.restaurant.persistence.BoughtPositionEntity;
+import com.shop.restaurant.persistence.CategoryEntity;
 import com.shop.restaurant.persistence.OrderEntity;
 import com.shop.restaurant.utils.OrderConverter;
 import org.hibernate.jpa.QueryHints;
@@ -25,6 +26,7 @@ import static com.shop.restaurant.utils.OrderConverter.*;
 public class OrderService {
   EmailService emailService;
   MenuPositionService menuPositionService;
+  CategoryService categoryService;
   ExecutorService executor = Executors.newFixedThreadPool(1);
 
   @PersistenceContext
@@ -32,17 +34,27 @@ public class OrderService {
 
 
   @Autowired
-  public OrderService(EmailService emailService, MenuPositionService menuPositionService) {
+  public OrderService(EmailService emailService, MenuPositionService menuPositionService, CategoryService categoryService) {
     this.emailService = emailService;
     this.menuPositionService = menuPositionService;
+    this.categoryService = categoryService;
   }
 
   public Order updateCost(Order source){
+    source.setCost(0);
     source.getBoughtPositions().forEach(
         boughtPosition -> {
-          source.setCost(
-              source.getCost() + boughtPosition.getCost() * boughtPosition.getQuantity()
-          );
+          CategoryEntity categoryEntity = categoryService.findById(menuPositionService.findById(
+              boughtPosition.getPositionId()).getCategory().getId());
+          if(categoryEntity.isFixedCost()){
+            source.setCost(
+                source.getCost() + categoryEntity.getFixedCostValue() * boughtPosition.getQuantity()
+            );
+          }else{
+            source.setCost(
+                source.getCost() + boughtPosition.getCost() * boughtPosition.getQuantity()
+            );
+          }
         }
     );
     return source;
@@ -63,6 +75,7 @@ public class OrderService {
           return boughtPositionEntity;
         }).collect(Collectors.toList())
     );
+
 
     entityManager.persist(created);
 

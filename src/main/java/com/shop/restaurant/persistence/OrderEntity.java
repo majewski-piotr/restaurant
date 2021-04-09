@@ -10,7 +10,7 @@ public class OrderEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
-  @OneToMany(fetch = FetchType.LAZY, mappedBy = "order")
+  @OneToMany(fetch = FetchType.LAZY, mappedBy = "order",cascade=CascadeType.ALL)
   private List<BoughtPositionEntity> boughtPositionEntities;
   private String comment;
   private LocalDateTime commitedTime;

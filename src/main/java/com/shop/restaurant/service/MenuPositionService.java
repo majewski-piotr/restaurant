@@ -1,6 +1,7 @@
 package com.shop.restaurant.service;
 
 import com.shop.restaurant.model.Position;
+import com.shop.restaurant.persistence.CategoryEntity;
 import com.shop.restaurant.persistence.PositionEntity;
 import com.shop.restaurant.utils.PositionConverter;
 import org.hibernate.jpa.QueryHints;
@@ -33,6 +34,12 @@ public class MenuPositionService {
 
   @Transactional
   public void savePosition(PositionEntity source){
+    CategoryEntity categoryEntity = source.getCategory();
+    if(categoryEntity.isFixedCost()){
+      source.setCost(
+          categoryEntity.getFixedCostValue()
+      );
+    }
     entityManager.persist(source);
   }
 
@@ -47,7 +54,7 @@ public class MenuPositionService {
 
   PositionEntity findById(int id){
     TypedQuery<PositionEntity> query = entityManager.createQuery(
-        "SELECT m FROM PositionEntity m LEFT JOIN FETCH m.category WHERE m.id = :id",
+        "SELECT m FROM PositionEntity m LEFT JOIN FETCH m.categoryEntity WHERE m.id = :id",
         PositionEntity.class
     ).setParameter("id",id);
     try{

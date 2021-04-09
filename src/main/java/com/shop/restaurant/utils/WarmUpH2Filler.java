@@ -60,6 +60,8 @@ class WarmUpH2Filler implements ApplicationListener<ContextRefreshedEvent> {
     created6.setFixedCostValue(5);
     categoryService.saveCategory(created6);
 
+
+
     //pizzas
 
     PositionEntity created7 = new PositionEntity();
@@ -155,17 +157,17 @@ class WarmUpH2Filler implements ApplicationListener<ContextRefreshedEvent> {
     //drinks
     PositionEntity created20 = new PositionEntity();
     created20.setName("Kawa");
-    created20.setCategory(categoryService.findAll().get(4));
+    created20.setCategory(categoryService.findAll().get(5));
     menuPositionService.savePosition(created20);
 
     PositionEntity created21 = new PositionEntity();
     created21.setName("Herbata");
-    created21.setCategory(categoryService.findAll().get(4));
+    created21.setCategory(categoryService.findAll().get(5));
     menuPositionService.savePosition(created21);
 
     PositionEntity created22 = new PositionEntity();
-    created22.setName("cola");
-    created22.setCategory(categoryService.findAll().get(4));
+    created22.setName("Cola");
+    created22.setCategory(categoryService.findAll().get(5));
     menuPositionService.savePosition(created22);
   }
 }

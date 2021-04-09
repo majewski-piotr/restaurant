@@ -2,9 +2,6 @@ package com.shop.restaurant.utils;
 
 import com.shop.restaurant.model.BoughtPosition;
 import com.shop.restaurant.persistence.BoughtPositionEntity;
-import com.shop.restaurant.persistence.OrderEntity;
-import com.shop.restaurant.persistence.PositionEntity;
-import com.shop.restaurant.service.MenuPositionService;
 
 public class BoughtPositionConverter {
   public static BoughtPosition createModel(BoughtPositionEntity source){
