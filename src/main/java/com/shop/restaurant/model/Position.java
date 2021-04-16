@@ -1,21 +1,9 @@
 package com.shop.restaurant.model;
 
-import com.shop.restaurant.persistence.MenuPosition;
-
-public class MenuPositionReadModel {
+public class Position {
   private int id;
   private int cost;
   private String name;
-
-  public MenuPositionReadModel(MenuPosition source) {
-    this.id = source.getId();
-    this.name = source.getName();
-    if(source.getCategory().isFixedCost()){
-      this.cost = source.getCategory().getFixedCostValue();
-    } else {
-      this.cost = source.getCost();
-    }
-  }
 
   public int getId() {
     return id;

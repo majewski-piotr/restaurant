@@ -1,19 +1,17 @@
-package com.shop.restaurant;
-import java.io.File;
-import java.util.Properties;
+package com.shop.restaurant.config;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
-import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
+
+import java.io.File;
+import java.util.Properties;
 
 @Configuration
-@ComponentScan(basePackages = "com.shop.restaurant")
-public class ApplicationConfig {
+public class EmailConfig {
 
   @Bean
   public JavaMailSender getMailSender() {

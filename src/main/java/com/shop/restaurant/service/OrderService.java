@@ -1,9 +1,10 @@
 package com.shop.restaurant.service;
 
-import com.shop.restaurant.model.*;
-import com.shop.restaurant.model.dto.*;
-import com.shop.restaurant.persistence.BoughtPosition;
-import com.shop.restaurant.persistence.Order;
+import com.shop.restaurant.model.Order;
+import com.shop.restaurant.persistence.BoughtPositionEntity;
+import com.shop.restaurant.persistence.CategoryEntity;
+import com.shop.restaurant.persistence.OrderEntity;
+import com.shop.restaurant.utils.OrderConverter;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,159 +15,96 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static com.shop.restaurant.utils.OrderConverter.*;
+
 @Service
 public class OrderService {
   EmailService emailService;
   MenuPositionService menuPositionService;
-  ExecutorService executor = Executors.newFixedThreadPool(10);
+  CategoryService categoryService;
+  ExecutorService executor = Executors.newFixedThreadPool(1);
 
   @PersistenceContext
-  EntityManager em;
+  EntityManager entityManager;
 
 
   @Autowired
-  public OrderService(EmailService emailService, MenuPositionService menuPositionService) {
+  public OrderService(EmailService emailService, MenuPositionService menuPositionService, CategoryService categoryService) {
     this.emailService = emailService;
     this.menuPositionService = menuPositionService;
+    this.categoryService = categoryService;
   }
 
-  public Order createOrder(){
-    Order created = new Order();
-    created.setBoughtPositions(new ArrayList<>());
-    return created;
-  }
-
-  @Transactional
-  public OrderReadModel saveOrder(Order toSave){
-    em.persist(toSave);
-    return new OrderReadModel(toSave);
-  }
-
-
-  private BoughtPosition createBoughtPosition(BoughtPositionWriteModel source, int orderId){
-    BoughtPosition created = new BoughtPosition();
-    created.setQuantity(source.getQuantity());
-    created.setOrder(findOrderById(orderId));
-    created.setMenuPosition(menuPositionService.findById(source.getMenuPositionId()));
-    return created;
-  }
-
-  private void throwErrorIfCommited(Order order)throws IllegalStateException{
-    if(order.isCommited()){
-      throw new IllegalStateException("This order is already commited!");
-    }
-  }
-  @Transactional
-  public OrderReadModel increaseBoughtPositionInCurrentOrder(BoughtPositionWriteModel addition, int orderId){
-    //get current order or create new one
-    Order currentOrder;
-    try{
-      currentOrder = findOrderById(orderId);
-      throwErrorIfCommited(currentOrder);
-    } catch (IllegalArgumentException e){
-      currentOrder = createOrder();
-      System.out.println("creating! id:"+currentOrder.getId());
-    }
-
-    //check if i have addition already in order
-    if(currentOrder.getBoughtPositions().stream().anyMatch(
-        el -> el.getMenuPosition().getId() == addition.getMenuPositionId())){
-
-      //if so, just increase the quantity
-      currentOrder.getBoughtPositions().forEach(element ->{
-        if(element.getMenuPosition().getId()==addition.getMenuPositionId()){
-          element.setQuantity(element.getQuantity()+addition.getQuantity());}
-      });
-    } else {
-      //else, creaete new one and add to order
-      var created = createBoughtPosition(addition, orderId);
-      em.persist(created);
-      currentOrder.getBoughtPositions().add(created);
-    }
-    return new OrderReadModel(currentOrder);
-  }
-
-  @Transactional
-  public OrderReadModel decreaseBoughtPositionInCurrentOrder(int boughtPositionId, int orderId){
-    Order currentOrder = findOrderById(orderId);
-
-    //i would prefer stream or foreach, but else modifies source and needs to break immediately
-    for(int i=0; i<currentOrder.getBoughtPositions().size();i++){
-      BoughtPosition element = currentOrder.getBoughtPositions().get(i);
-      if(element.getMenuPosition().getId()==boughtPositionId){
-        if(element.getQuantity()==1){
-          currentOrder.getBoughtPositions().remove(element);
-          em.remove(element);
-        } else {
-          element.setQuantity(element.getQuantity()-1);
+  public Order updateCost(Order source){
+    source.setCost(0);
+    source.getBoughtPositions().forEach(
+        boughtPosition -> {
+          CategoryEntity categoryEntity = categoryService.findById(menuPositionService.findById(
+              boughtPosition.getPositionId()).getCategory().getId());
+          if(categoryEntity.isFixedCost()){
+            source.setCost(
+                source.getCost() + categoryEntity.getFixedCostValue() * boughtPosition.getQuantity()
+            );
+          }else{
+            source.setCost(
+                source.getCost() + boughtPosition.getCost() * boughtPosition.getQuantity()
+            );
+          }
         }
-        break;
-      }
-    }
-    return new OrderReadModel(currentOrder);
+    );
+    return source;
   }
+
 
   @Transactional
-  public OrderCommitedReadModel commitOrder(OrderCommitWriteModel order, int orderId){
-    Order currentOrder = findOrderById(orderId);
+  public Order saveOrder(Order source){
+    OrderEntity created = new OrderEntity();
+    created.setComment(source.getComment());
+    created.setCommitedTime(LocalDateTime.now());
+    created.setBoughtPositions(
+        source.getBoughtPositions().stream().map(model -> {
+          BoughtPositionEntity boughtPositionEntity = new BoughtPositionEntity();
+          boughtPositionEntity.setMenuPosition(menuPositionService.findById(model.getPositionId()));
+          boughtPositionEntity.setQuantity(model.getQuantity());
+          boughtPositionEntity.setOrder(created);
+          return boughtPositionEntity;
+        }).collect(Collectors.toList())
+    );
 
-    currentOrder.setComment(order.getComment());
-    currentOrder.setCommitedTime(LocalDateTime.now());
-    currentOrder.setCommited(true);
-    OrderCommitedReadModel commited = new OrderCommitedReadModel(currentOrder);
-    executor.submit(() -> {
-      emailService.sendEmail(
-          "Zamówienie nr "+currentOrder.getId(),
-          "majewski.piotr.511@gmail.com",
-          "piomaj4@wp.pl",
-          commited.toFreemarkerModel());
-    });
-    return commited;
+
+    entityManager.persist(created);
+
+    return updateCost(createModel(created));
   }
 
-  public List<OrderReadModel> findAll(){
-    TypedQuery<Order> query = em.createQuery(
-        "SELECT DISTINCT o FROM Order o " +
-            "LEFT JOIN FETCH o.boughtPositions b " +
-            "LEFT JOIN FETCH b.menuPosition m ",
-        Order.class
+  public List<Order> findAll(){
+    TypedQuery<OrderEntity> query = entityManager.createQuery(
+        "SELECT DISTINCT o FROM OrderEntity o " +
+            "LEFT JOIN FETCH o.boughtPositionEntities b " +
+            "LEFT JOIN FETCH b.positionEntity m ",
+        OrderEntity.class
         )
         .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false);
 
-    List<Order> result = query.getResultList();
-    return result.stream().map(OrderReadModel::new).collect(Collectors.toList());
+    List<OrderEntity> result = query.getResultList();
+    return result.stream().map(OrderConverter::createModel).collect(Collectors.toList());
   }
 
-  public List<OrderHistoryReadModel> findAllCommited(boolean isCommited){
-    TypedQuery<Order> query = em.createQuery(
-        "SELECT DISTINCT o FROM Order o " +
-            "LEFT JOIN FETCH o.boughtPositions b " +
-            "LEFT JOIN FETCH b.menuPosition m " +
-            "WHERE o.commited = :isCommited",
-        Order.class
-    )
-        .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false)
-        .setParameter("isCommited",isCommited);
 
-    List<Order> result = query.getResultList();
-    return result.stream().map(OrderHistoryReadModel::new).collect(Collectors.toList());
-  }
-
-  private Order findOrderById(int id){
-    Order result;
+  private OrderEntity findOrderById(int id){
+    OrderEntity result;
     try{
-      result = em.createQuery(
-        "SELECT DISTINCT o FROM Order o " +
-            "LEFT JOIN FETCH o.boughtPositions b " +
-            "LEFT JOIN FETCH b.menuPosition m " +
+      result = entityManager.createQuery(
+        "SELECT DISTINCT o FROM OrderEntity o " +
+            "LEFT JOIN FETCH o.boughtPositionEntities b " +
+            "LEFT JOIN FETCH b.positionEntity m " +
             "WHERE o.id = :id",
-          Order.class)
+          OrderEntity.class)
         .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false)
         .setParameter("id",id)
         .getSingleResult();
@@ -176,12 +114,12 @@ public class OrderService {
     }
   }
 
-  private BoughtPosition findBoughtPositionById(int id){
-    TypedQuery<BoughtPosition> query = em.createQuery(
-        "SELECT b FROM BoughtPosition b " +
-            "LEFT JOIN FETCH b.menuPosition bm " +
+  private BoughtPositionEntity findBoughtPositionById(int id){
+    TypedQuery<BoughtPositionEntity> query = entityManager.createQuery(
+        "SELECT b FROM BoughtPositionEntity b " +
+            "LEFT JOIN FETCH b.positionEntity bm " +
             "WHERE b.id = :id",
-        BoughtPosition.class
+        BoughtPositionEntity.class
     ).setParameter("id",id);
     try{
       return query.getSingleResult();
@@ -189,7 +127,4 @@ public class OrderService {
       throw new IllegalArgumentException("No such bought position!");
     }
   }
-
-
-
 }

@@ -1,8 +1,9 @@
 package com.shop.restaurant.service;
 
-import com.shop.restaurant.model.MenuPositionReadModel;
-import com.shop.restaurant.model.MenuPositionWriteModel;
-import com.shop.restaurant.persistence.MenuPosition;
+import com.shop.restaurant.model.Position;
+import com.shop.restaurant.persistence.CategoryEntity;
+import com.shop.restaurant.persistence.PositionEntity;
+import com.shop.restaurant.utils.PositionConverter;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,8 @@ import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.shop.restaurant.utils.PositionConverter.createModel;
+
 @Service
 public class MenuPositionService {
   CategoryService categoryService;
@@ -25,42 +28,34 @@ public class MenuPositionService {
   }
 
   @PersistenceContext
-  EntityManager em;
+  EntityManager entityManager;
 
-  private MenuPosition create(MenuPositionWriteModel source){
-    MenuPosition created = new MenuPosition();
 
-    created.setName(source.getName());
-    created.setCategory(categoryService.findById(source.getCategoryId()));
-
-    if(created.getCategory().isFixedCost()){
-      created.setCost(created.getCategory().getFixedCostValue());
-    }else{
-      created.setCost(source.getCost());
-    }
-    return created;
-  }
 
   @Transactional
-  public MenuPositionReadModel save(MenuPositionWriteModel source){
-    MenuPosition created = create(source);
-    em.persist(created);
-    return new MenuPositionReadModel(created);
+  public void savePosition(PositionEntity source){
+    CategoryEntity categoryEntity = source.getCategory();
+    if(categoryEntity.isFixedCost()){
+      source.setCost(
+          categoryEntity.getFixedCostValue()
+      );
+    }
+    entityManager.persist(source);
   }
 
-  public List<MenuPositionReadModel> findAll(){
-    TypedQuery<MenuPosition> query = em.createQuery(
-        "SELECT DISTINCT m FROM MenuPosition m LEFT JOIN FETCH m.category c",MenuPosition.class)
+  public List<Position> findAll(){
+    TypedQuery<PositionEntity> query = entityManager.createQuery(
+        "SELECT DISTINCT m FROM PositionEntity m LEFT JOIN FETCH m.category c", PositionEntity.class)
         .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false);
     return query.getResultList().stream()
-        .map(MenuPositionReadModel::new)
+        .map(PositionConverter::createModel)
         .collect(Collectors.toList());
   }
 
-  MenuPosition findById(int id){
-    TypedQuery<MenuPosition> query = em.createQuery(
-        "SELECT m FROM MenuPosition m LEFT JOIN FETCH m.category WHERE m.id = :id",
-        MenuPosition.class
+  PositionEntity findById(int id){
+    TypedQuery<PositionEntity> query = entityManager.createQuery(
+        "SELECT m FROM PositionEntity m LEFT JOIN FETCH m.categoryEntity WHERE m.id = :id",
+        PositionEntity.class
     ).setParameter("id",id);
     try{
       return query.getSingleResult();

@@ -2,7 +2,6 @@ package com.shop.restaurant.controller;
 
 
 import com.shop.restaurant.model.*;
-import com.shop.restaurant.model.dto.*;
 import com.shop.restaurant.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,33 +20,21 @@ public class OrderController {
     this.orderService = orderService;
   }
 
-  @PostMapping
-  ResponseEntity<OrderReadModel> createNewOrder(){
-    OrderReadModel created = orderService.saveOrder(orderService.createOrder());
-    return ResponseEntity.created(URI.create("/"+created.getId())).body(created);
+  @PatchMapping
+  ResponseEntity<Order> updateCost(@RequestBody Order order){
+    Order created = orderService.updateCost(order);
+    return ResponseEntity.ok(created);
   }
 
-  @PatchMapping("/{id}/increaseposition")
-  ResponseEntity<OrderReadModel> addToOrder(@RequestBody BoughtPositionWriteModel source, @PathVariable int id){
-    OrderReadModel patched = orderService.increaseBoughtPositionInCurrentOrder(source, id);
-    return ResponseEntity.ok(patched);
-  }
-
-  @PatchMapping("/{id}/decreaseposition")
-  ResponseEntity<OrderReadModel> decreaseInOrder(@RequestParam int boughtPositionId, @PathVariable int id){
-    OrderReadModel patched = orderService.decreaseBoughtPositionInCurrentOrder(boughtPositionId, id);
-    return ResponseEntity.ok(patched);
-  }
-
-  @PatchMapping("/{id}/commit")
-  ResponseEntity<OrderCommitedReadModel> commitOrder(@RequestBody OrderCommitWriteModel order, @PathVariable int id) {
-    OrderCommitedReadModel patched = orderService.commitOrder(order,id);
-    return ResponseEntity.ok(patched);
+  @PostMapping("/commit")
+  ResponseEntity<Order> commitOrder(@RequestBody Order order) {
+    Order patched = orderService.saveOrder(order);
+    return ResponseEntity.created(URI.create("/history")).body(patched);
   }
 
   @GetMapping
-  ResponseEntity<List<OrderHistoryReadModel>> findAllCommited(@RequestParam boolean isCommited){
-    List<OrderHistoryReadModel> result = orderService.findAllCommited(isCommited);
+  ResponseEntity<List<Order>> findAll(){
+    List<Order> result = orderService.findAll();
     return ResponseEntity.ok(result);
   }
 }

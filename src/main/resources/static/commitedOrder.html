@@ -30,15 +30,11 @@
     });
     let commitedOrder = JSON.parse(window.localStorage.getItem("commitedOrder"));
     (function (){
-        const zakupy = document.getElementById("zakupy");
-        const koszt = document.getElementById("koszt");
-        const time = document.getElementById("time");
 
-        let i = 0
-        commitedOrder.boughtPositionsNames.forEach(element => {
+
+        commitedOrder.boughtPositions.forEach(element => {
             const pozycja = document.createElement("LABEL");
-            pozycja.innerHTML = `<p>${element}: ${commitedOrder.quantities[i]} x ${commitedOrder.boughtPositionCosts[i]}zł</p>`
-            i += 1;
+            pozycja.innerHTML = `<p>${element.name}: ${element.quantity} x ${element.cost}zł</p>`
             zakupy.appendChild(pozycja);
         })
         const faktycznyKoszt = document.createElement('LABEL');

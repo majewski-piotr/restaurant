@@ -3,29 +3,29 @@ package com.shop.restaurant.persistence;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "menuPositions")
-public class MenuPosition {
+@Table(name = "positions")
+public class PositionEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
   private int cost;
   private String name;
   @ManyToOne(fetch= FetchType.LAZY)
-  Category category;
+  CategoryEntity categoryEntity;
 
-  public MenuPosition(){
+  public PositionEntity(){
   }
 
-  public MenuPosition(int cost, String name, Category category) {
+  public PositionEntity(int cost, String name, CategoryEntity categoryEntity) {
     this.cost = cost;
     this.name = name;
-    this.category = category;
+    this.categoryEntity = categoryEntity;
   }
 
-  public MenuPosition(String name, Category category) {
+  public PositionEntity(String name, CategoryEntity categoryEntity) {
     this.name = name;
-    this.category = category;
-    this.cost = category.getFixedCostValue();
+    this.categoryEntity = categoryEntity;
+    this.cost = categoryEntity.getFixedCostValue();
   }
 
   public int getId() {
@@ -48,11 +48,11 @@ public class MenuPosition {
     this.cost = cost;
   }
 
-  public Category getCategory() {
-    return category;
+  public CategoryEntity getCategory() {
+    return categoryEntity;
   }
 
-  public void setCategory(Category category) {
-    this.category = category;
+  public void setCategory(CategoryEntity categoryEntity) {
+    this.categoryEntity = categoryEntity;
   }
 }
