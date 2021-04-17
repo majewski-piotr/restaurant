@@ -82,11 +82,14 @@ public class OrderService {
         }).collect(Collectors.toList())
     );
 
-    emailService.sendEmail(
-        "Zamówienie nr "+created.getId(),
-        sender,
-        receiver,
-        createFreemarkerModel(created));
+    executor.submit(()->{
+      emailService.sendEmail(
+          "Zamówienie nr "+created.getId(),
+          sender,
+          receiver,
+          createFreemarkerModel(created));
+        }
+    );
 
     entityManager.persist(created);
 
