@@ -1,6 +1,8 @@
 package com.shop.restaurant.controller;
 
 
+import com.shop.restaurant.exception.CategoryNotFoundException;
+import com.shop.restaurant.exception.PositionNotFoundException;
 import com.shop.restaurant.model.*;
 import com.shop.restaurant.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +23,15 @@ public class OrderController {
   }
 
   @PatchMapping
-  ResponseEntity<Order> updateCost(@RequestBody Order order){
+  ResponseEntity<Order> updateCost(@RequestBody Order order)
+      throws PositionNotFoundException, CategoryNotFoundException {
     Order created = orderService.updateCost(order);
     return ResponseEntity.ok(created);
   }
 
   @PostMapping("/commit")
-  ResponseEntity<Order> commitOrder(@RequestBody Order order) {
+  ResponseEntity<Order> commitOrder(@RequestBody Order order)
+      throws PositionNotFoundException, CategoryNotFoundException {
     Order patched = orderService.saveOrder(order);
     return ResponseEntity.created(URI.create("/history")).body(patched);
   }

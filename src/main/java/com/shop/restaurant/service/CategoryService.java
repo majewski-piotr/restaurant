@@ -1,5 +1,6 @@
 package com.shop.restaurant.service;
 
+import com.shop.restaurant.exception.CategoryNotFoundException;
 import com.shop.restaurant.persistence.CategoryEntity;
 import com.shop.restaurant.persistence.PositionEntity;
 import org.hibernate.jpa.QueryHints;
@@ -41,14 +42,14 @@ public class CategoryService {
     return query.getResultList();
   }
 
-  CategoryEntity findById(int id){
+  CategoryEntity findById(int id) throws CategoryNotFoundException{
     TypedQuery<CategoryEntity> query = entityManager.createQuery(
         "SELECT c FROM CategoryEntity c where c.id = :id", CategoryEntity.class
     ).setParameter("id",id);
     try{
       return query.getSingleResult();
     } catch (NoResultException e ){
-      throw new IllegalArgumentException("No such category");
+      throw new CategoryNotFoundException();
     }
   }
 

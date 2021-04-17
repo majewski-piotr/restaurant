@@ -1,5 +1,6 @@
 package com.shop.restaurant.service;
 
+import com.shop.restaurant.exception.PositionNotFoundException;
 import com.shop.restaurant.model.Position;
 import com.shop.restaurant.persistence.CategoryEntity;
 import com.shop.restaurant.persistence.PositionEntity;
@@ -15,8 +16,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.shop.restaurant.utils.PositionConverter.createModel;
 
 @Service
 public class MenuPositionService {
@@ -45,14 +44,14 @@ public class MenuPositionService {
 
   public List<Position> findAll(){
     TypedQuery<PositionEntity> query = entityManager.createQuery(
-        "SELECT DISTINCT m FROM PositionEntity m LEFT JOIN FETCH m.category c", PositionEntity.class)
+        "SELECT DISTINCT m FROM PositionEntity m LEFT JOIN FETCH m.categoryEntity c", PositionEntity.class)
         .setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH,false);
     return query.getResultList().stream()
         .map(PositionConverter::createModel)
         .collect(Collectors.toList());
   }
 
-  PositionEntity findById(int id){
+  PositionEntity findById(int id) throws PositionNotFoundException{
     TypedQuery<PositionEntity> query = entityManager.createQuery(
         "SELECT m FROM PositionEntity m LEFT JOIN FETCH m.categoryEntity WHERE m.id = :id",
         PositionEntity.class
@@ -60,7 +59,7 @@ public class MenuPositionService {
     try{
       return query.getSingleResult();
     }catch(NoResultException e){
-      throw new IllegalArgumentException("No such menu position!");
+      throw new PositionNotFoundException();
     }
   }
 }
