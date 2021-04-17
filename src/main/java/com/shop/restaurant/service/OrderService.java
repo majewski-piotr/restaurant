@@ -7,6 +7,7 @@ import com.shop.restaurant.persistence.OrderEntity;
 import com.shop.restaurant.utils.OrderConverter;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +21,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static com.shop.restaurant.utils.OrderConverter.*;
+import static com.shop.restaurant.utils.OrderConverter.createModel;
+import static com.shop.restaurant.utils.OrderConverter.createFreemarkerModel;
 
 @Service
 public class OrderService {
@@ -32,6 +34,10 @@ public class OrderService {
   @PersistenceContext
   EntityManager entityManager;
 
+  @Value("${mail.sender.username}")
+  private String sender;
+  @Value("${mail.receiver.username}")
+  private String receiver;
 
   @Autowired
   public OrderService(EmailService emailService, MenuPositionService menuPositionService, CategoryService categoryService) {
@@ -76,6 +82,14 @@ public class OrderService {
         }).collect(Collectors.toList())
     );
 
+    executor.submit(()->{
+      emailService.sendEmail(
+          "Zamówienie nr "+created.getId(),
+          sender,
+          receiver,
+          createFreemarkerModel(created));
+        }
+    );
 
     entityManager.persist(created);
 

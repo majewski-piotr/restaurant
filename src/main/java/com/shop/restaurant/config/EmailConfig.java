@@ -1,5 +1,6 @@
 package com.shop.restaurant.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -12,6 +13,15 @@ import java.util.Properties;
 
 @Configuration
 public class EmailConfig {
+  @Value("${mail.sender.port}")
+  private int port;
+  @Value("${mail.sender.host}")
+  private String host;
+  @Value("${mail.sender.username}")
+  private String username;
+  @Value("${mail.sender.password}")
+  private String password;
+
 
   @Bean
   public JavaMailSender getMailSender() {
@@ -21,10 +31,10 @@ public class EmailConfig {
     properties.setProperty("mail.mime.charset", "UTF-8");
     mailSender.setJavaMailProperties(properties);
 
-    mailSender.setHost("smtp.gmail.com");
-    mailSender.setPort(587);
-    mailSender.setUsername("majewski.piotr.511@gmail.com");
-    mailSender.setPassword("mcvnddyafdcsdbcs");
+    mailSender.setHost(host);
+    mailSender.setPort(port);
+    mailSender.setUsername(username);
+    mailSender.setPassword(password);
 
     Properties javaMailProperties = new Properties();
     javaMailProperties.put("mail.smtp.starttls.enable", "true");
@@ -40,7 +50,7 @@ public class EmailConfig {
   public FreeMarkerConfigurationFactoryBean getFreeMarkerConfiguration() {
     FreeMarkerConfigurationFactoryBean fmConfigFactoryBean = new FreeMarkerConfigurationFactoryBean();
     fmConfigFactoryBean.setDefaultEncoding("UTF-8");
-    //THIS IS QUITE UGLY BUT I COULDNT FIGURE OUT PATH, NO OTHER SEEMS TO WORK
+
     String basePath = new File("").getAbsolutePath();
     fmConfigFactoryBean.setTemplateLoaderPath("file:"+basePath+"\\src\\main\\resources\\templates");
 
