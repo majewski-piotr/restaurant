@@ -1,5 +1,10 @@
 package com.shop.restaurant.service;
 
+import com.shop.restaurant.exception.BoughtPositionNotFoundException;
+import com.shop.restaurant.exception.CategoryNotFoundException;
+import com.shop.restaurant.exception.OrderNotFoundException;
+import com.shop.restaurant.exception.PositionNotFoundException;
+import com.shop.restaurant.model.BoughtPosition;
 import com.shop.restaurant.model.Order;
 import com.shop.restaurant.persistence.BoughtPositionEntity;
 import com.shop.restaurant.persistence.CategoryEntity;
@@ -46,36 +51,38 @@ public class OrderService {
     this.categoryService = categoryService;
   }
 
-  public Order updateCost(Order source){
+  public Order updateCost(Order source) throws PositionNotFoundException, CategoryNotFoundException {
     source.setCost(0);
-    source.getBoughtPositions().forEach(
-        boughtPosition -> {
-          CategoryEntity categoryEntity = categoryService.findById(menuPositionService.findById(
-              boughtPosition.getPositionId()).getCategory().getId());
-          if(categoryEntity.isFixedCost()){
-            source.setCost(
-                source.getCost() + categoryEntity.getFixedCostValue() * boughtPosition.getQuantity()
-            );
-          }else{
-            source.setCost(
-                source.getCost() + boughtPosition.getCost() * boughtPosition.getQuantity()
-            );
-          }
-        }
-    );
+    for (BoughtPosition boughtPosition : source.getBoughtPositions()) {
+      CategoryEntity categoryEntity = categoryService.findById(menuPositionService.findById(
+          boughtPosition.getPositionId()).getCategory().getId());
+      if (categoryEntity.isFixedCost()) {
+        source.setCost(
+            source.getCost() + categoryEntity.getFixedCostValue() * boughtPosition.getQuantity()
+        );
+      } else {
+        source.setCost(
+            source.getCost() + boughtPosition.getCost() * boughtPosition.getQuantity()
+        );
+      }
+    }
     return source;
   }
 
 
   @Transactional
-  public Order saveOrder(Order source){
+  public Order saveOrder(Order source) throws PositionNotFoundException, CategoryNotFoundException {
     OrderEntity created = new OrderEntity();
     created.setComment(source.getComment());
     created.setCommitedTime(LocalDateTime.now());
     created.setBoughtPositions(
         source.getBoughtPositions().stream().map(model -> {
           BoughtPositionEntity boughtPositionEntity = new BoughtPositionEntity();
-          boughtPositionEntity.setMenuPosition(menuPositionService.findById(model.getPositionId()));
+          try {
+            boughtPositionEntity.setMenuPosition(menuPositionService.findById(model.getPositionId()));
+          } catch (PositionNotFoundException e) {
+            throw new RuntimeException(e);
+          }
           boughtPositionEntity.setQuantity(model.getQuantity());
           boughtPositionEntity.setOrder(created);
           return boughtPositionEntity;
@@ -110,7 +117,7 @@ public class OrderService {
   }
 
 
-  private OrderEntity findOrderById(int id){
+  private OrderEntity findOrderById(int id) throws OrderNotFoundException{
     OrderEntity result;
     try{
       result = entityManager.createQuery(
@@ -124,11 +131,11 @@ public class OrderService {
         .getSingleResult();
       return result;
     }catch(NoResultException e){
-      throw new IllegalArgumentException("no such order!");
+      throw new OrderNotFoundException();
     }
   }
 
-  private BoughtPositionEntity findBoughtPositionById(int id){
+  private BoughtPositionEntity findBoughtPositionById(int id) throws BoughtPositionNotFoundException {
     TypedQuery<BoughtPositionEntity> query = entityManager.createQuery(
         "SELECT b FROM BoughtPositionEntity b " +
             "LEFT JOIN FETCH b.positionEntity bm " +
@@ -138,7 +145,7 @@ public class OrderService {
     try{
       return query.getSingleResult();
     }catch(NoResultException e ){
-      throw new IllegalArgumentException("No such bought position!");
+      throw new BoughtPositionNotFoundException();
     }
   }
 }
