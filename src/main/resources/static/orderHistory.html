@@ -11,10 +11,6 @@
         <button id="menu">Menu</button>
     </nav>
     <h3>Historia zamówień</h3>
-    <div>
-        <button class="showHistory" id="commited">Pokaż zatwierdzone zamówienia</button>
-        <button class="showHistory" id="uncommited">Pokaż niezatwierdzone zamówienia</button>
-    </div>
 
 </main>
 <script>
@@ -26,32 +22,17 @@
     const main = document.querySelector('main');
     let showed = false;
     let showedCounter = 0;
-    for (const item of document.querySelectorAll(".showHistory")) {
-        item.addEventListener('click', async event =>{
-            event.preventDefault();
+    (async function loadHistory(){
             var resp;
-            if (item.id==="commited"){
-                resp = await fetch(`http://localhost:8080/orders?`+ new URLSearchParams({
-                    isCommited: `${true}`,
-                }), {
+                resp = await fetch(`http://localhost:8080/orders`,
+                    {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     }
                 })
-            }else{
-                resp = await fetch(`http://localhost:8080/orders?`+ new URLSearchParams({
-                    isCommited: `${false}`,
-                }), {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                })
-            }
-            const currentOrderEntity = await resp.json();
+            const orders = await resp.json();
             if(showed){
                 for(let j=0;j<showedCounter;j++){
                     main.removeChild(main.lastChild);
@@ -59,20 +40,14 @@
             }
             showedCounter = 0;
             let i;
-            currentOrderEntity.forEach(orderEntity=>{
-                var time;
-                if(orderEntity.commitedTime == null){
-                    time = "brak";
-                } else {
-                    time = orderEntity.commitedTime;
-                }
+            orders.forEach(order=>{
                 const orderDiv = document.createElement('div')
-                orderDiv.innerHTML = `<p>Zamówienie nr: ${orderEntity.id} czas zakupu: ${time} koszt:${orderEntity.cost}zł</p>`;
+                orderDiv.innerHTML = `<p>Zamówienie nr: ${order.id} czas zakupu: ${order.commitedTime} koszt:${order.cost}zł</p>`;
                 const listOfPositions = document.createElement('ul');
                 i=0;
-                orderEntity.boughtPositionsNames.forEach(item => {
+                order.boughtPositions.forEach(boughtPosition => {
                     const listElement = document.createElement('li');
-                    listElement.innerHTML = `<p>${item}, sztuk: ${orderEntity.quantities[i]}, koszt sztuki: ${orderEntity.boughtPositionCosts[i]}zł`;
+                    listElement.innerHTML = `<p>${boughtPosition.name}, sztuk: ${boughtPosition.quantity}, koszt sztuki: ${boughtPosition.cost}zł`;
                     i =+ 1;
                     listOfPositions.appendChild(listElement);
                 })
@@ -80,9 +55,8 @@
                 main.appendChild(orderDiv);
                 showed = true;
                 showedCounter += 1;
-            })
-        })
-    }
+            })})();
+
 </script>
 </body>
 </html>
