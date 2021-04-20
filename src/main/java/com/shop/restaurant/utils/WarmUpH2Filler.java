@@ -6,11 +6,9 @@ import com.shop.restaurant.service.CategoryService;
 import com.shop.restaurant.service.MenuPositionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
-@Profile("dev")
 @Component
 class WarmUpH2Filler implements ApplicationListener<ContextRefreshedEvent> {
   private CategoryService categoryService;
